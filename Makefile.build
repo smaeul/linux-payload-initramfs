@@ -77,7 +77,7 @@ busybox_INSTALL = \
     install -m0755 busybox $(SYSROOT)/bin
 busybox_BINS = busybox
 
-coreboot_VERSION = git-049347fee0e25c87c3f60b125ee5e03109429fb0
+coreboot_VERSION = git-9a848dde8b34a854af716670f5c993c49c1ab22e
 coreboot_SOURCE = https://review.coreboot.org/coreboot
 coreboot_CFLAGS = \
     -DCMOS_HAL=1 \
@@ -124,7 +124,7 @@ kexec-tools_CONFIGURE = \
     $(COMMON_CONFIGURE) --without-xen
 kexec-tools_BINS = kexec
 
-libtirpc_VERSION = git-f867034564e5b5e3e24f0da1878bf2c2608cf2b1
+libtirpc_VERSION = git-dd9c7cf4f8f375c6d641b760d124650c418c2ce3
 libtirpc_SOURCE = git://linux-nfs.org/~steved/libtirpc
 libtirpc_PREPARE = \
     $(COMMON_PREPARE) && \
@@ -160,7 +160,7 @@ lvm2_INSTALL = \
     $(MAKE) DESTDIR="$(SYSROOT)" install_device-mapper
 lvm2_LIBS = libdevmapper.so.1.02
 
-musl_VERSION = git-84eff797e3e38210cc311b000b1586b948b4fc35
+musl_VERSION = git-2d7d05f031e014068a61d3076c6178513395d2ae
 musl_SOURCE = git://git.musl-libc.org/musl
 musl_CONFIGURE = \
     $(COMMON_CONFIGURE) --enable-warnings
