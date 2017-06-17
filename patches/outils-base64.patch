@@ -1,0 +1,13 @@
+diff --git outils-build/src/bin/md5/md5.c.orig outils-build/src/bin/md5/md5.c
+index 0523883..b755ace 100644
+--- outils-build/src/bin/md5/md5.c.orig
++++ outils-build/src/bin/md5/md5.c
+@@ -62,6 +62,8 @@ union ANY_CTX {
+ 	SHA2_CTX sha2;
+ };
+ 
++int __b64_ntop(u_char const *src, size_t srclength, char *target, size_t targsize);
++
+ struct hash_function {
+ 	const char *name;
+ 	size_t digestlen;

@@ -1,0 +1,12 @@
+diff --git libtirpc-build/src/svc_raw.c.orig libtirpc-build/src/svc_raw.c
+index a8a396f..0eb0965 100644
+--- libtirpc-build/src/svc_raw.c.orig
++++ libtirpc-build/src/svc_raw.c
+@@ -43,6 +43,7 @@
+ #include <sys/types.h>
+ #include <rpc/raw.h>
+ #include <stdlib.h>
++#include <string.h>
+ 
+ #ifndef UDPMSGSIZE
+ #define	UDPMSGSIZE 8800

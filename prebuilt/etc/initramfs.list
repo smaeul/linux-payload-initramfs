@@ -1,0 +1,37 @@
+dir /bin 755 0 0
+file /bin/busybox staging/bin/busybox 755 0 0
+file /bin/cbmem prebuilt/cbmem 755 0 0
+file /bin/cryptsetup staging/bin/cryptsetup 755 0 0
+file /bin/flashrom staging/bin/flashrom 755 0 0
+file /bin/kexec staging/bin/kexec 755 0 0
+slink /bin/mount busybox 777 0 0
+file /bin/nvramtool prebuilt/nvramtool 755 0 0
+file /bin/signify staging/bin/signify 755 0 0
+slink /bin/sh busybox 777 0 0
+slink /bin/umount busybox 777 0 0
+file /bin/zfs staging/bin/zfs 755 0 0
+file /bin/zpool staging/bin/zpool 755 0 0
+dir /dev 755 0 0
+nod /dev/console 600 0 0 c 5 1
+nod /dev/null 600 0 0 c 1 3
+dir /etc 755 0 0
+slink /etc/mtab /proc/self/mounts 777 0 0
+file /init prebuilt/init 755 0 0
+dir /lib 755 0 0
+file /lib/ld-musl-x86_64.so.1 staging/lib/libc.so 755 0 0
+file /lib/libblkid.so.1 staging/lib/libblkid.so.1 755 0 0
+file /lib/libcryptsetup.so.4 staging/lib/libcryptsetup.so.4 755 0 0
+file /lib/libdevmapper.so.1.02 staging/lib/libdevmapper.so.1.02 755 0 0
+file /lib/liblzma.so.5 staging/lib/liblzma.so.5 755 0 0
+file /lib/libnvpair.so.1 staging/lib/libnvpair.so.1 755 0 0
+file /lib/libpci.so.3 staging/lib/libpci.so.3 755 0 0
+file /lib/libpopt.so.0 staging/lib/libpopt.so.0 755 0 0
+file /lib/libtirpc.so.3 staging/lib/libtirpc.so.3 755 0 0
+file /lib/libuuid.so.1 staging/lib/libuuid.so.1 755 0 0
+file /lib/libuutil.so.1 staging/lib/libuutil.so.1 755 0 0
+file /lib/libz.so.1 staging/lib/libz.so.1 755 0 0
+file /lib/libzfs.so.2 staging/lib/libzfs.so.2 755 0 0
+file /lib/libzfs_core.so.1 staging/lib/libzfs_core.so.1 755 0 0
+file /lib/libzpool.so.2 staging/lib/libzpool.so.2 755 0 0
+dir /proc 755 0 0
+dir /sys 755 0 0

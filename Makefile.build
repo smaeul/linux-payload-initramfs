@@ -1,0 +1,305 @@
+STAGING = $(CURDIR)/staging
+SYSROOT = $(CURDIR)/sysroot/$(TARGET)
+WORKDIR = $(CURDIR)/$(MODULE)-build
+
+ARCH = $(firstword $(subst -, ,$(TARGET)))
+ifeq ($(ARCH),x86_64)
+MACHINE ?= sandybridge
+endif
+
+CC = $(SYSROOT)/../bin/$(TARGET)-gcc
+CPP = $(CC) -E
+CXX = $(SYSROOT)/../bin/$(TARGET)-g++
+
+COMMON_CFLAGS = \
+    -fdata-sections \
+    -ffunction-sections \
+    -fno-common \
+    -fno-exceptions \
+    -fno-unwind-tables \
+    -fomit-frame-pointer \
+    -g0 \
+    -march=$(MACHINE) \
+    -mtune=$(MACHINE) \
+    -Os \
+    -Wa,--noexecstack \
+    -Werror=implicit-function-declaration
+COMMON_LDFLAGS = \
+    -s \
+    -Wl,--as-needed \
+    -Wl,--hash-style=both \
+    -Wl,--sort-section=alignment \
+    -Wl,-z,noexecstack \
+    -Wl,-z,now \
+    -Wl,-z,relro
+
+COMMON_FETCH_GIT = \
+    git clone --bare $($(MODULE)_SOURCE) $($(MODULE)_LOCAL_SOURCE)
+COMMON_FETCH_TAR = \
+    wget -nv -O $($(MODULE)_LOCAL_SOURCE) $($(MODULE)_SOURCE)
+COMMON_UNPACK_GIT = \
+    git clone $($(MODULE)_LOCAL_SOURCE) $(WORKDIR) && \
+    git -C $(WORKDIR) checkout -q $($(MODULE)_VERSION:git-%=%)
+COMMON_UNPACK_TAR = \
+    sha256sum -c hashes/$(notdir $($(MODULE)_LOCAL_SOURCE)).sha256 && \
+    tar xf $($(MODULE)_LOCAL_SOURCE) && \
+    mv $(MODULE)-$($(MODULE)_VERSION) $(WORKDIR)
+COMMON_PREPARE = \
+    for p in ../patches/$(MODULE)*; do if test -f "$$p"; then patch -p1 -i "$$p"; fi; done
+COMMON_CONFIGURE = \
+    ./configure CC="$(CC)" CPP="$(CPP)" CXX="$(CXX)" \
+    CFLAGS="$(COMMON_CFLAGS) $($(MODULE)_CFLAGS)" LDFLAGS="$(COMMON_LDFLAGS) $($(MODULE)_LDFLAGS)" \
+    --build=$(TARGET) --host=$(TARGET) \
+    --prefix= --bindir=/bin --libdir=/lib --sbindir=/bin \
+    --disable-nls --disable-rpath --disable-static
+COMMON_COMPILE = \
+    $(MAKE)
+COMMON_INSTALL = \
+    $(MAKE) DESTDIR="$(SYSROOT)" install
+
+attr_VERSION = 2.4.47
+attr_SOURCE = https://download.savannah.gnu.org/releases/attr/attr-$(attr_VERSION).src.tar.gz
+attr_PREPARE = \
+    $(COMMON_PREPARE) && \
+    cp ../tools/config.sub .
+attr_CONFIGURE = \
+    $(COMMON_CONFIGURE) --disable-gettext
+attr_COMPILE = \
+    true
+attr_INSTALL = \
+    $(MAKE) DESTDIR="$(SYSROOT)" include-install-dev
+
+busybox_VERSION = 1.26.2
+busybox_SOURCE = http://busybox.net/downloads/busybox-$(busybox_VERSION).tar.bz2
+busybox_CONFIGURE = \
+    cp ../tools/busybox.config .config
+busybox_INSTALL = \
+    install -m0755 busybox $(SYSROOT)/bin
+busybox_BINS = busybox
+
+coreboot_VERSION = git-049347fee0e25c87c3f60b125ee5e03109429fb0
+coreboot_SOURCE = https://review.coreboot.org/coreboot
+coreboot_CFLAGS = \
+    -DCMOS_HAL=1 \
+    -I.
+coreboot_CONFIGURE = \
+    true
+coreboot_COMPILE = \
+    $(MAKE) -C util/cbmem CC="$(CC)" CPP="$(CPP)" CXX="$(CXX)" \
+    CFLAGS="$(COMMON_CFLAGS) $($(MODULE)_CFLAGS)" LDFLAGS="$(COMMON_LDFLAGS) $($(MODULE)_LDFLAGS)" && \
+    $(MAKE) -C util/nvramtool CC="$(CC)" CPP="$(CPP)" CXX="$(CXX)" \
+    CFLAGS="$(COMMON_CFLAGS) $($(MODULE)_CFLAGS)" LDFLAGS="$(COMMON_LDFLAGS) $($(MODULE)_LDFLAGS)"
+coreboot_INSTALL = \
+    $(MAKE) -C util/cbmem DESTDIR="$(SYSROOT)" PREFIX= install && \
+    $(MAKE) -C util/nvramtool DESTDIR="$(SYSROOT)" PREFIX= install
+coreboot_BINS = cbmem nvramtool
+
+cryptsetup_VERSION = 1.7.5
+cryptsetup_SOURCE = https://www.kernel.org/pub/linux/utils/cryptsetup/v1.7/cryptsetup-$(cryptsetup_VERSION).tar.xz
+cryptsetup_CONFIGURE = \
+    $(COMMON_CONFIGURE) --disable-selinux --disable-udev --with-crypto_backend=kernel
+cryptsetup_BINS = cryptsetup
+cryptsetup_LIBS = libcryptsetup.so.4
+
+flashrom_VERSION = 0.9.9
+flashrom_SOURCE = https://download.flashrom.org/releases/flashrom-$(flashrom_VERSION).tar.bz2
+flashrom_CONFIGURE = \
+    true
+flashrom_COMPILE = \
+    $(MAKE) CC="$(CC)" CPP="$(CPP)" CXX="$(CXX)" \
+    CFLAGS="$(COMMON_CFLAGS) $($(MODULE)_CFLAGS)" LDFLAGS="$(COMMON_LDFLAGS) $($(MODULE)_LDFLAGS)" \
+    CONFIG_INTERNAL=yes CONFIG_NOTHING=yes
+flashrom_INSTALL = \
+    install -m0755 flashrom $(SYSROOT)/bin
+flashrom_BINS = flashrom
+
+kexec-tools_VERSION = 2.0.14
+kexec-tools_SOURCE = https://www.kernel.org/pub/linux/utils/kernel/kexec/kexec-tools-$(kexec-tools_VERSION).tar.xz
+kexec-tools_PREPARE = \
+    $(COMMON_PREPARE) && \
+    cp ../tools/config.sub config && \
+    sed -i '/bzImage_support_efi_boot;/s/int/extern int/' kexec/arch/x86_64/kexec-bzImage64.c && \
+    sed -i 's/loff_t/off_t/g' vmcore-dmesg/vmcore-dmesg.c
+kexec-tools_CONFIGURE = \
+    $(COMMON_CONFIGURE) --without-xen
+kexec-tools_BINS = kexec
+
+libtirpc_VERSION = git-f867034564e5b5e3e24f0da1878bf2c2608cf2b1
+libtirpc_SOURCE = git://linux-nfs.org/~steved/libtirpc
+libtirpc_PREPARE = \
+    $(COMMON_PREPARE) && \
+    mkdir tirpc/sys && \
+    cp ../tools/queue.h tirpc/sys && \
+    ./bootstrap
+libtirpc_CONFIGURE = \
+    $(COMMON_CONFIGURE) --disable-gssapi --disable-ipv6 --disable-symvers
+libtirpc_LIBS = libtirpc.so.3
+
+linux_VERSION = 4.9.33
+linux_SOURCE = https://cdn.kernel.org/pub/linux/kernel/v4.x/linux-$(linux_VERSION).tar.xz
+linux_CONFIGURE = \
+    $(MAKE) defconfig
+linux_COMPILE = \
+    $(MAKE) HOSTCC="$(CC)" \
+    HOSTCFLAGS="$(COMMON_CFLAGS) $($(MODULE)_CFLAGS) $(COMMON_LDFLAGS) $($(MODULE)_LDFLAGS)" \
+    usr
+linux_INSTALL = \
+    install -m0755 usr/gen_init_cpio $(SYSROOT)/bin && \
+    install -m0755 scripts/gen_initramfs_list.sh $(SYSROOT)/bin/gen_initramfs_list
+linux_BINS = gen_init_cpio
+
+lvm2_VERSION = 2.02.171
+lvm2_SOURCE = https://mirrors.kernel.org/sourceware/lvm2/LVM2.$(lvm2_VERSION).tgz
+lvm2_UNPACK = \
+    sha256sum -c hashes/$(notdir $($(MODULE)_LOCAL_SOURCE)).sha256 && \
+    tar xf $($(MODULE)_LOCAL_SOURCE) && \
+    mv LVM2.$($(MODULE)_VERSION) $(WORKDIR)
+lvm2_COMPILE = \
+    $(MAKE) device-mapper
+lvm2_INSTALL = \
+    $(MAKE) DESTDIR="$(SYSROOT)" install_device-mapper
+lvm2_LIBS = libdevmapper.so.1.02
+
+musl_VERSION = git-84eff797e3e38210cc311b000b1586b948b4fc35
+musl_SOURCE = git://git.musl-libc.org/musl
+musl_CONFIGURE = \
+    $(COMMON_CONFIGURE) --enable-warnings
+musl_LIBS = ld-musl-$(ARCH).so.1
+
+outils_VERSION = git-c6fe3a3f95b447a221ba51f9807d796d88a0580d
+outils_SOURCE = https://github.com/chneukirchen/outils
+outils_CONFIGURE = \
+    true
+outils_COMPILE = \
+    $(MAKE) CC="$(CC)" CPP="$(CPP)" CXX="$(CXX)" \
+    CFLAGS="$(COMMON_CFLAGS) $($(MODULE)_CFLAGS)" LDFLAGS="$(COMMON_LDFLAGS) $($(MODULE)_LDFLAGS)"
+outils_INSTALL = \
+    $(MAKE) DESTDIR="$(SYSROOT)" PREFIX= install
+outils_BINS = signify
+
+pciutils_VERSION = 3.5.4
+pciutils_SOURCE = https://www.kernel.org/pub/software/utils/pciutils/pciutils-$(pciutils_VERSION).tar.xz
+pciutils_CONFIGURE = \
+    true
+pciutils_COMPILE = \
+    $(MAKE) CC="$(CC)" CPP="$(CPP)" CXX="$(CXX)" \
+    OPT="$(COMMON_CFLAGS) $($(MODULE)_CFLAGS)" LDFLAGS="$(COMMON_LDFLAGS) $($(MODULE)_LDFLAGS)" \
+    DNS=no LIBKMOD=no SHARED=yes HWDB=no ZLIB=no lib/libpci.so.$(pciutils_VERSION)
+pciutils_INSTALL = \
+    $(MAKE) DESTDIR="$(SYSROOT)" PREFIX= install-lib && \
+    mv $(SYSROOT)/lib/libpci.so.$(pciutils_VERSION) $(SYSROOT)/lib/libpci.so.3 && \
+    ln -s libpci.so.3 $(SYSROOT)/lib/libpci.so
+pciutils_LIBS = libpci.so.3
+
+popt_VERSION = 1.16
+popt_SOURCE = http://rpm5.org/files/popt/popt-$(popt_VERSION).tar.gz
+popt_PREPARE = \
+    $(COMMON_PREPARE) && \
+    cp ../tools/config.sub .
+popt_LIBS = libpopt.so.0
+
+util-linux_VERSION = 2.29.2
+util-linux_SOURCE = https://www.kernel.org/pub/linux/utils/util-linux/v2.29/util-linux-$(util-linux_VERSION).tar.xz
+util-linux_CONFIGURE = \
+    $(COMMON_CONFIGURE) --enable-libblkid --enable-libuuid --disable-all-programs \
+    --disable-bash-completion --without-cap-ng --without-python --without-tinfo --without-udev \
+    --without-user --without-util
+util-linux_LIBS = libblkid.so.1 libuuid.so.1
+
+xz_VERSION = 5.2.3
+xz_SOURCE = https://tukaani.org/xz/xz-$(xz_VERSION).tar.xz
+xz_CONFIGURE = \
+    $(COMMON_CONFIGURE) --enable-decoders=lzma1,lzma2,x86 --enable-encoders=lzma1,lzma2,x86 \
+    --enable-small --enable-threads=posix --disable-doc --disable-lzma-links --disable-scripts
+xz_LIBS = liblzma.so.5
+
+zfs_VERSION = 0.7.0-rc4
+zfs_SOURCE = https://github.com/zfsonlinux/zfs/releases/download/zfs-$(zfs_VERSION)/zfs-$(zfs_VERSION).tar.gz
+zfs_UNPACK = \
+    sha256sum -c hashes/$(notdir $($(MODULE)_LOCAL_SOURCE)).sha256 && \
+    tar xf $($(MODULE)_LOCAL_SOURCE) && \
+    mv $(MODULE)-$($(MODULE)_VERSION:-rc4=) $(WORKDIR)
+zfs_CONFIGURE = \
+    $(COMMON_CONFIGURE) --disable-systemd --disable-sysvinit --with-config=user \
+    --with-mounthelperdir=/bin --with-tirpc
+zfs_BINS = zfs zpool
+zfs_LIBS = libnvpair.so.1 libuutil.so.1 libzfs.so.2 libzfs_core.so.1 libzpool.so.2
+
+zlib_VERSION = 1.2.11
+zlib_SOURCE = http://zlib.net/zlib-$(zlib_VERSION).tar.xz
+zlib_CONFIGURE = \
+    CC="$(CC)" CPP="$(CPP)" CXX="$(CXX)" \
+    CFLAGS="$(COMMON_CFLAGS) $($(MODULE)_CFLAGS)" LDFLAGS="$(COMMON_LDFLAGS) $($(MODULE)_LDFLAGS)" \
+    ./configure --prefix= --const
+zlib_LIBS = libz.so.1
+
+ifneq ($(findstring git,$($(MODULE)_VERSION)),)
+$(MODULE)_LOCAL_SOURCE = sources/$(MODULE).git
+else
+$(MODULE)_LOCAL_SOURCE = sources/$(notdir $($(MODULE)_SOURCE))
+endif
+
+ifeq ($($(MODULE)_FETCH),)
+ifneq ($(findstring git,$($(MODULE)_VERSION)),)
+$(MODULE)_FETCH = $(COMMON_FETCH_GIT)
+else
+$(MODULE)_FETCH = $(COMMON_FETCH_TAR)
+endif
+endif
+ifeq ($($(MODULE)_UNPACK),)
+ifneq ($(findstring git,$($(MODULE)_VERSION)),)
+$(MODULE)_UNPACK = $(COMMON_UNPACK_GIT)
+else
+$(MODULE)_UNPACK = $(COMMON_UNPACK_TAR)
+endif
+endif
+ifeq ($($(MODULE)_PREPARE),)
+$(MODULE)_PREPARE = $(COMMON_PREPARE)
+endif
+ifeq ($($(MODULE)_CONFIGURE),)
+$(MODULE)_CONFIGURE = $(COMMON_CONFIGURE)
+endif
+ifeq ($($(MODULE)_COMPILE),)
+$(MODULE)_COMPILE = $(COMMON_COMPILE)
+endif
+ifeq ($($(MODULE)_INSTALL),)
+$(MODULE)_INSTALL = $(COMMON_INSTALL)
+endif
+
+all: $(WORKDIR)/.staged
+fetch: $($(MODULE)_LOCAL_SOURCE)
+unpack: $(WORKDIR)/.unpacked
+prepare: $(WORKDIR)/.prepared
+configure: $(WORKDIR)/.configured
+compile: $(WORKDIR)/.compiled
+install: $(WORKDIR)/.installed
+stage: $(WORKDIR)/.staged
+
+$($(MODULE)_LOCAL_SOURCE):
+	$($(MODULE)_FETCH)
+
+$(WORKDIR)/.unpacked: $($(MODULE)_LOCAL_SOURCE)
+	$($(MODULE)_UNPACK)
+	touch $@
+
+$(WORKDIR)/.prepared: $(WORKDIR)/.unpacked
+	cd $(WORKDIR) && $($(MODULE)_PREPARE)
+	touch $@
+
+$(WORKDIR)/.configured: sysroot $(WORKDIR)/.prepared
+	cd $(WORKDIR) && $($(MODULE)_CONFIGURE)
+	touch $@
+
+$(WORKDIR)/.compiled: $(WORKDIR)/.configured
+	+cd $(WORKDIR) && $($(MODULE)_COMPILE)
+	touch $@
+
+$(WORKDIR)/.installed: $(WORKDIR)/.compiled
+	+cd $(WORKDIR) && $($(MODULE)_INSTALL)
+	find $(SYSROOT) -name '*.la' -delete
+	touch $@
+
+$(WORKDIR)/.staged: $(WORKDIR)/.installed
+	for b in $($(MODULE)_BINS); do install -m0755 "$(SYSROOT)/bin/$${b}" "$(STAGING)/bin"; done
+	for l in $($(MODULE)_LIBS); do install -m0755 "$(SYSROOT)/lib/$${l}" "$(STAGING)/lib"; done
+	touch $@

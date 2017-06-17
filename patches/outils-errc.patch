@@ -1,0 +1,14 @@
+diff --git outils-build/src/liboutils/errc.c.orig outils-build/src/liboutils/errc.c
+index 345bdc2..7e356cb 100644
+--- outils-build/src/liboutils/errc.c.orig
++++ outils-build/src/liboutils/errc.c
+@@ -32,6 +32,9 @@
+ #include <stdarg.h>
+ 
+ __dead void
++_verrc(int eval, int code, const char *fmt, va_list ap);
++
++__dead void
+ _errc(int eval, int code, const char *fmt, ...)
+ {
+ 	va_list ap;

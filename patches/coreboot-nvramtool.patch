@@ -1,0 +1,11 @@
+diff --git a/util/nvramtool/accessors/cmos-hw-unix.c b/util/nvramtool/accessors/cmos-hw-unix.c
+--- a/util/nvramtool/accessors/cmos-hw-unix.c
++++ b/util/nvramtool/accessors/cmos-hw-unix.c
+@@ -1,6 +1,7 @@
+ #include <assert.h>
+ #include "cmos_lowlevel.h"
+ 
++#include <sys/io.h>
+ #if defined(__FreeBSD__)
+ #include <sys/types.h>
+ #include <machine/cpufunc.h>

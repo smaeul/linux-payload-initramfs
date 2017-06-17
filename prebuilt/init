@@ -1,0 +1,33 @@
+#!/bin/sh
+
+mount -nt proc proc /proc
+mount -nt devtmpfs dev /dev
+mount -nt sysfs sys /sys
+
+exec > /dev/ttyS0
+disk=$(echo /sys/devices/pci0000:00/0000:00:1f.2/ata*/host*/target*/*/block/sd*)
+disk=$(basename "$disk")
+
+echo "internal disk is /dev/$disk"
+
+cryptsetup open \
+  --allow-discards \
+  --cipher aes-xts-plain \
+  --hash sha512 \
+  --key-size 256 \
+  --readonly \
+  --type plain \
+  "/dev/${disk}" internal
+
+while ! test -f /exec; do
+  getty -l sh -n 115200 ttyS0
+done
+
+cryptsetup close internal
+
+umount /sys
+umount /dev
+umount /proc
+
+rm /exec
+exec /init
