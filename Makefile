@@ -3,6 +3,8 @@ TARGET = x86_64-linux-musl
 modules-y = attr busybox coreboot cryptsetup flashrom kexec-tools pciutils libtirpc linux lvm2 musl outils popt util-linux xz zfs zlib
 prebuilt-y = init etc/initramfs.list
 
+prebuilt-y := $(addprefix staging/,$(prebuilt-y))
+
 all: initramfs.cpio.xz
 
 attr: musl
@@ -56,5 +58,5 @@ sysroot: musl-cross-make
 $(modules-y): | sources staging sysroot
 	$(MAKE) -f Makefile.build MODULE=$@ TARGET=$(TARGET) stage
 
-$(prebuilt-y): %: prebuilt/% | staging
-	cp $< staging/$@
+$(prebuilt-y): staging/%: prebuilt/% | staging
+	cp $< $@
