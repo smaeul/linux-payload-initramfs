@@ -184,7 +184,7 @@ pciutils_CONFIGURE = \
 pciutils_COMPILE = \
     $(MAKE) CC="$(CC)" CPP="$(CPP)" CXX="$(CXX)" \
     OPT="$(COMMON_CFLAGS) $($(MODULE)_CFLAGS)" LDFLAGS="$(COMMON_LDFLAGS) $($(MODULE)_LDFLAGS)" \
-    DNS=no LIBKMOD=no SHARED=yes HWDB=no ZLIB=no lib/libpci.so.$(pciutils_VERSION)
+    DNS=no HWDB=no IDSDIR=/ LIBKMOD=no SHARED=yes ZLIB=no lib/libpci.so.$(pciutils_VERSION)
 pciutils_INSTALL = \
     $(MAKE) DESTDIR="$(SYSROOT)" PREFIX= install-lib && \
     mv $(SYSROOT)/lib/libpci.so.$(pciutils_VERSION) $(SYSROOT)/lib/libpci.so.3 && \
