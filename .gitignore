@@ -1,0 +1,6 @@
+/*-build/
+/musl-cross-make/
+/sources/
+/staging/
+/sysroot/
+/initramfs.*
