@@ -127,37 +127,6 @@ diff -u -x '*.d' -x '*.o' ../clean/flashrom-0.9.9/flashchips.c flashrom-0.9.9/fl
  
  	{0}
  };
-diff -u -x '*.d' -x '*.o' ../clean/flashrom-0.9.9/flashrom.c flashrom-0.9.9/flashrom.c
---- ../clean/flashrom-0.9.9/flashrom.c	2016-02-22 09:59:27.000000000 +0100
-+++ flashrom-0.9.9/flashrom.c	2017-04-19 00:04:25.138374544 +0200
-@@ -1983,7 +1983,7 @@
- 	uint8_t *newcontents;
- 	int ret = 0;
- 	unsigned long size = flash->chip->total_size * 1024;
--	int read_all_first = 1; /* FIXME: Make this configurable. */
-+	int read_all_first = 0; /* FIXME: Make this configurable. */
- 
- 	if (chip_safety_check(flash, force, read_it, write_it, erase_it, verify_it)) {
- 		msg_cerr("Aborting.\n");
-diff -u -x '*.d' -x '*.o' ../clean/flashrom-0.9.9/layout.c flashrom-0.9.9/layout.c
---- ../clean/flashrom-0.9.9/layout.c	2016-03-13 18:36:49.000000000 +0100
-+++ flashrom-0.9.9/layout.c	2017-04-19 00:04:25.138374544 +0200
-@@ -259,6 +259,7 @@
- 
- static int copy_old_content(struct flashctx *flash, int oldcontents_valid, uint8_t *oldcontents, uint8_t *newcontents, unsigned int start, unsigned int size)
- {
-+#if 0
- 	if (!oldcontents_valid) {
- 		/* oldcontents is a zero-filled buffer. By reading the current data into oldcontents here, we
- 		 * avoid a rewrite of identical regions even if an initial full chip read didn't happen. */
-@@ -269,6 +270,7 @@
- 			return 1;
- 		}
- 	}
-+#endif
- 	memcpy(newcontents + start, oldcontents + start, size);
- 	return 0;
- }
 diff -u -x '*.d' -x '*.o' ../clean/flashrom-0.9.9/print.c flashrom-0.9.9/print.c
 --- ../clean/flashrom-0.9.9/print.c	2016-03-13 16:16:30.000000000 +0100
 +++ flashrom-0.9.9/print.c	2017-04-19 00:04:25.138374544 +0200
