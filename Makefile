@@ -31,7 +31,7 @@ distclean: clean
 	rm -fr musl-cross-make sources
 
 initramfs.cpio.xz: initramfs.list linux
-	sysroot/$(TARGET)/bin/gen_init_cpio -t 0 $< | xz --check=crc32 --lzma2=dict=1MiB > $@.tmp && mv $@.tmp $@
+	sysroot/$(TARGET)/bin/gen_init_cpio -t 0 $< | xz -9 --check=crc32 > $@.tmp && mv $@.tmp $@
 
 initramfs.list: linux staging $(modules-y) $(prebuilt-y)
 	sysroot/$(TARGET)/bin/gen_initramfs_list -u squash -g squash staging > $@.tmp && mv $@.tmp $@
