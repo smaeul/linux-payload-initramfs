@@ -1,7 +1,7 @@
 TARGET = x86_64-linux-musl
 
 modules-y = attr busybox coreboot cryptsetup flashrom kexec-tools pciutils libtirpc linux lvm2 musl outils popt util-linux xz zfs zlib
-prebuilt-y = init etc/initramfs.list
+prebuilt-y = bin/umount etc/secondstage etc/initramfs.list init
 
 prebuilt-y := $(addprefix staging/,$(prebuilt-y))
 
@@ -46,10 +46,9 @@ stageclean:
 	rm -fr *-build/.staged initramfs.cpio.xz initramfs.list staging
 
 staging:
-	mkdir -p $@ $@/bin $@/dev $@/etc $@/lib $@/proc $@/sys
+	mkdir -p $@ $@/bin $@/boot $@/dev $@/etc $@/lib $@/proc $@/sys
 	ln -fs busybox staging/bin/mount
 	ln -fs busybox staging/bin/sh
-	ln -fs busybox staging/bin/umount
 
 sysroot: musl-cross-make
 	$(MAKE) -C musl-cross-make OUTPUT=$(CURDIR)/sysroot TARGET=$(TARGET) install

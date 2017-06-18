@@ -1,0 +1,99 @@
+#!/bin/sh -eu
+
+# Should we try to recover from errors (rescue mode)? Or just reboot?
+recover=1
+# Should we print messages describing what we did or are attempting to do?
+verbose=0
+
+# An error occurred. Enable logging and print the message.
+error() {
+  verbose=1
+  print "$@"
+  test "${recover-0}" -gt 0 && rescue
+  sleep 5
+  print "Rebooting"
+  reboot -f
+}
+
+# Parse a flag from the kernel command line
+flag() {
+  test -z "${1-}" && return 1
+  for word in $(cat /proc/cmdline); do
+    test "$1" = "$word" && return 0
+  done
+  return 1
+}
+
+# Print a line of output for each argument, but only in verbose mode.
+print() {
+  test "${verbose:=0}" -ge 1 && printf '%s\n' "$@"
+}
+
+# Prompt for a line of input, with optional timeout.
+prompt() {
+  input=
+  timeout=
+  test -n "${2-}" && timeout="-t ${2}"
+  printf '%s' "${1-}"
+  read -r $timeout input || true
+  test -z "$input" && printf '\n'
+}
+
+# Prompt for a single character of input, with a short timeout.
+promptc() {
+  input=
+  timeout=1
+  test -n "${2-}" && timeout=$2
+  printf '%s' "$1"
+  read -n 1 -r -t "$timeout" input || true
+  printf '\n'
+}
+
+# Enter rescue mode: authenticate, drop to a shell, then retry boot.
+rescue() {
+  print "Entering rescue mode"
+  getty -l sh -n 115200 "${console-tty0}"
+  print "Restarting /init"
+  exec /init
+}
+
+# Parse a variable from the kernel command line
+var() {
+  test -z "${1-}" && return
+  for word in $(cat /proc/cmdline); do
+    val=${word#${1}=}
+    if test "$val" != "$word"; then
+      printf '%s' "$val"
+      return
+    fi
+  done
+}
+
+export PATH=/bin
+trap 'error "Unexpected error!"' EXIT HUP INT QUIT TERM
+
+mountpoint -q /proc || mount -nt proc proc /proc
+mountpoint -q /dev || mount -nt devtmpfs dev /dev
+mountpoint -q /sys || mount -nt sysfs sys /sys
+
+print "Reopening encrypted volume"
+dmsetup create internal --table "$(cat /table)"
+head -c 128 /dev/urandom >/table
+rm -f /table
+
+root=$(var root)
+pool=${root%%/*}
+opts=ro
+flag rw && opts=rw
+flag ro && opts=ro
+opts=${opts},$(var rootflags)
+type=$(var rootfstype)
+print "Mounting root dataset '${root}' (${opts})"
+zpool import -d /dev/mapper -N "$pool"
+sleep 1
+mount -i -o "$opts" -t "${type-zfs}" "$root" /root
+
+init=$(var init)
+print "Switching to '/root' (${init})"
+umount /dev /proc /sys
+exec switch_root /root "${init-/sbin/init}"

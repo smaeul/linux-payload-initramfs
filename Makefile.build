@@ -98,7 +98,7 @@ cryptsetup_VERSION = 1.7.5
 cryptsetup_SOURCE = https://www.kernel.org/pub/linux/utils/cryptsetup/v1.7/cryptsetup-$(cryptsetup_VERSION).tar.xz
 cryptsetup_CONFIGURE = \
     $(COMMON_CONFIGURE) --disable-selinux --disable-udev --with-crypto_backend=kernel
-cryptsetup_BINS = cryptsetup
+cryptsetup_BINS = cryptsetup dmsetup
 cryptsetup_LIBS = libcryptsetup.so.4
 
 flashrom_VERSION = 0.9.9

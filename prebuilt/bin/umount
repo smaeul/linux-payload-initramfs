@@ -1,0 +1,9 @@
+#!/bin/sh
+
+# busybox umount does not understand -t
+if test "x${1}" = "x-t"; then
+  shift
+  shift
+fi
+
+exec busybox umount "$@"

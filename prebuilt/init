@@ -1,33 +1,118 @@
-#!/bin/sh
+#!/bin/sh -eu
 
-mount -nt proc proc /proc
-mount -nt devtmpfs dev /dev
-mount -nt sysfs sys /sys
+# Should we try to recover from errors (rescue mode)? Or just reboot?
+recover=1
+# Should we print messages describing what we did or are attempting to do?
+verbose=0
 
-exec > /dev/ttyS0
+# An error occurred. Enable logging and print the message.
+error() {
+  verbose=1
+  print "$@"
+  test "${recover-0}" -gt 0 && rescue
+  sleep 5
+  print "Rebooting"
+  reboot -f
+}
+
+# Print a line of output for each argument, but only in verbose mode.
+print() {
+  test "${verbose:=0}" -ge 1 && printf '%s\n' "$@"
+}
+
+# Prompt for a line of input, with optional timeout.
+prompt() {
+  input=
+  timeout=
+  test -n "${2-}" && timeout="-t ${2}"
+  printf '%s' "${1-}"
+  read -r $timeout input || true
+  test -z "$input" && printf '\n'
+}
+
+# Prompt for a single character of input, with a short timeout.
+promptc() {
+  input=
+  timeout=1
+  test -n "${2-}" && timeout=$2
+  printf '%s' "$1"
+  read -n 1 -r -t "$timeout" input || true
+  printf '\n'
+}
+
+# Enter rescue mode: authenticate, drop to a shell, then retry boot.
+rescue() {
+  print "Entering rescue mode"
+  getty -l sh -n 115200 "${console-tty0}"
+  print "Restarting /init"
+  exec /init
+}
+
+export PATH=/bin
+trap 'error "Unexpected error!"' EXIT HUP INT QUIT TERM
+
+mountpoint -q /proc || mount -nt proc proc /proc
+mountpoint -q /dev || mount -nt devtmpfs dev /dev
+mountpoint -q /sys || mount -nt sysfs sys /sys
+
+promptc "Press 'r' to enter rescue mode... "
+test "$input" = "r" && rescue
+
 disk=$(echo /sys/devices/pci0000:00/0000:00:1f.2/ata*/host*/target*/*/block/sd*)
-disk=$(basename "$disk")
+disk=/dev/$(basename "$disk")
+print "Unlocking internal disk ${disk}"
+cryptsetup open --allow-discards -r -t 20 -T 3 --type luks "${disk}" internal
 
-echo "internal disk is /dev/$disk"
+print "Searching for ZFS pools"
+# Returns success even with no pools found
+zpool import -a -d /dev/mapper -N 2>/dev/null
+pool=$(zpool list -H -o name)
+test -z "$pool" && error "No ZFS pool found!"
+print "Imported ZFS pool '${pool}'"
 
-cryptsetup open \
-  --allow-discards \
-  --cipher aes-xts-plain \
-  --hash sha512 \
-  --key-size 256 \
-  --readonly \
-  --type plain \
-  "/dev/${disk}" internal
+bootfs=$(zpool get -H -o value bootfs "$pool")
+kerneldir=
+if test -z "$bootfs" || test "$bootfs" = "-"; then
+  print "No bootfs, trying rootfs"
+  bootfs=$(zfs list -H -o name "${pool}/rootfs" 2>/dev/null || true)
+  kerneldir=/boot
+fi
+if test -z "$bootfs"; then
+  print "No rootfs, falling back to top-level dataset"
+  bootfs=$pool
+  kerneldir=/boot
+fi
 
-while ! test -f /exec; do
-  getty -l sh -n 115200 ttyS0
-done
+print "Mounting boot dataset '${bootfs}'"
+mount -i -o ro -t zfs "$bootfs" /boot
 
+kernel=$(ls -CLt1 "/boot${kerneldir}" | grep -F vmlinuz | head -n 1 || true)
+test -z "$kernel" && error "No kernel image found!"
+promptc "Selected default kernel '$kernel', press any key to override... "
+if test -n "$input"; then
+  print "Available kernels:"
+  ls -l "/boot${kerneldir}" | grep -F vmlinuz
+  prompt "> "
+  kernel=$input
+fi
+print "Using kernel image '$kernel'"
+cp "/boot${kerneldir}/${kernel}" /kernel
+
+print "Reading kernel command line"
+cmda=$(cat /proc/cmdline)
+cmdb=$(cat "/boot${kerneldir}/cmdline${kernel#vmlinuz}" 2>/dev/null || true)
+
+print "Exporting ZFS pool '${pool}'"
+zpool export "$pool"
+
+print "Exporting LUKS master key"
+dmsetup table --showkeys internal > /table
+
+print "Closing encrypted volume"
 cryptsetup close internal
 
-umount /sys
-umount /dev
-umount /proc
+print "Generating initramfs"
+gen_init_cpio -t 0 /etc/initramfs.list > /initramfs
 
-rm /exec
-exec /init
+print "Executing new kernel"
+kexec -f -s -x -y --command-line="${cmda} ${cmdb}" --initrd=/initramfs /kernel
