@@ -10,14 +10,15 @@ error() {
   verbose=1
   print "$@"
   test "${recover-0}" -gt 0 && rescue
-  sleep 5
   print "Rebooting"
+  sleep 5
   reboot -f
 }
 
 # Print a line of output for each argument, but only in verbose mode.
 print() {
   test "${verbose:=0}" -ge 1 && printf '%s\n' "$@"
+  return 0
 }
 
 # Prompt for a line of input, with optional timeout.
@@ -28,6 +29,7 @@ prompt() {
   printf '%s' "${1-}"
   read -r $timeout input || true
   test -z "$input" && printf '\n'
+  return 0
 }
 
 # Prompt for a single character of input, with a short timeout.
