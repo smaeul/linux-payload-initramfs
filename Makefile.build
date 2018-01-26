@@ -133,6 +133,9 @@ libtirpc_PREPARE = \
     ./bootstrap
 libtirpc_CONFIGURE = \
     $(COMMON_CONFIGURE) --disable-gssapi --disable-ipv6 --disable-symvers
+libtirpc_INSTALL = \
+    $(COMMON_INSTALL) && \
+    ln -fns $(SYSROOT)/include/tirpc/* $(SYSROOT)/include
 libtirpc_LIBS = libtirpc.so.3
 
 linux_VERSION = 4.9.33
@@ -148,7 +151,7 @@ linux_INSTALL = \
     install -m0755 scripts/gen_initramfs_list.sh $(SYSROOT)/bin/gen_initramfs_list
 linux_BINS = gen_init_cpio
 
-lvm2_VERSION = 2.02.171
+lvm2_VERSION = 2.02.177
 lvm2_SOURCE = https://mirrors.kernel.org/sourceware/lvm2/LVM2.$(lvm2_VERSION).tgz
 lvm2_UNPACK = \
     sha256sum -c hashes/$(notdir $($(MODULE)_LOCAL_SOURCE)).sha256 && \
@@ -213,12 +216,11 @@ xz_CONFIGURE = \
     --enable-small --enable-threads=posix --disable-doc --disable-lzma-links --disable-scripts
 xz_LIBS = liblzma.so.5
 
-zfs_VERSION = 0.7.0-rc4
+zfs_VERSION = 0.7.5
 zfs_SOURCE = https://github.com/zfsonlinux/zfs/releases/download/zfs-$(zfs_VERSION)/zfs-$(zfs_VERSION).tar.gz
-zfs_UNPACK = \
-    sha256sum -c hashes/$(notdir $($(MODULE)_LOCAL_SOURCE)).sha256 && \
-    tar xf $($(MODULE)_LOCAL_SOURCE) && \
-    mv $(MODULE)-$($(MODULE)_VERSION:-rc4=) $(WORKDIR)
+zfs_PREPARE = \
+    $(COMMON_PREPARE) && \
+    cp ../tools/config.sub config
 zfs_CONFIGURE = \
     $(COMMON_CONFIGURE) --disable-systemd --disable-sysvinit --with-config=user \
     --with-mounthelperdir=/bin --with-tirpc
