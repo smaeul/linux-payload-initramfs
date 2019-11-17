@@ -59,18 +59,6 @@ COMMON_COMPILE = \
 COMMON_INSTALL = \
     $(MAKE) DESTDIR="$(SYSROOT)" install
 
-attr_VERSION = 2.4.47
-attr_SOURCE = https://download.savannah.gnu.org/releases/attr/attr-$(attr_VERSION).src.tar.gz
-attr_PREPARE = \
-    $(COMMON_PREPARE) && \
-    cp ../tools/config.sub .
-attr_CONFIGURE = \
-    $(COMMON_CONFIGURE) --disable-gettext
-attr_COMPILE = \
-    true
-attr_INSTALL = \
-    $(MAKE) DESTDIR="$(SYSROOT)" include-install-dev
-
 busybox_VERSION = 1.31.1
 busybox_SOURCE = http://busybox.net/downloads/busybox-$(busybox_VERSION).tar.bz2
 busybox_CONFIGURE = \
