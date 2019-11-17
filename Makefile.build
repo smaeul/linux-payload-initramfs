@@ -50,7 +50,8 @@ COMMON_PREPARE = \
 COMMON_CONFIGURE = \
     ./configure CC="$(CC)" CPP="$(CPP)" CXX="$(CXX)" \
     CFLAGS="$(COMMON_CFLAGS) $($(MODULE)_CFLAGS)" LDFLAGS="$(COMMON_LDFLAGS) $($(MODULE)_LDFLAGS)" \
-    --build=$(TARGET) --host=$(TARGET) \
+    CONFIG_SITE=../tools/config.site \
+    --host=$(TARGET) \
     --prefix= --bindir=/bin --libdir=/lib --sbindir=/bin \
     --disable-nls --disable-rpath --disable-static
 COMMON_COMPILE = \
