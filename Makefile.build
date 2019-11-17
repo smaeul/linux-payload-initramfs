@@ -126,6 +126,18 @@ kexec-tools_CONFIGURE = \
     $(COMMON_CONFIGURE) --without-xen
 kexec-tools_BINS = kexec
 
+libaio_VERSION = 0.3.112
+libaio_SOURCE = http://ftp.debian.org/debian/pool/main/liba/libaio/libaio_$(libaio_VERSION).orig.tar.xz
+libaio_CFLAGS = \
+    -fPIC -I.
+libaio_CONFIGURE = \
+    true
+libaio_COMPILE = \
+    $(MAKE) CC="$(CC)" CPP="$(CPP)" CXX="$(CXX)" \
+    CFLAGS="$(COMMON_CFLAGS) $($(MODULE)_CFLAGS)" LDFLAGS="$(COMMON_LDFLAGS) $($(MODULE)_LDFLAGS)"
+libaio_INSTALL = \
+    $(MAKE) DESTDIR="$(SYSROOT)" prefix= install
+
 libtirpc_VERSION = git-dd9c7cf4f8f375c6d641b760d124650c418c2ce3
 libtirpc_SOURCE = git://linux-nfs.org/~steved/libtirpc
 libtirpc_PREPARE = \
