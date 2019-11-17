@@ -235,7 +235,7 @@ xz_CONFIGURE = \
     --enable-small --enable-threads=posix --disable-doc --disable-lzma-links --disable-scripts
 xz_LIBS = liblzma.so.5
 
-zfs_VERSION = 0.7.5
+zfs_VERSION = 0.8.2
 zfs_SOURCE = https://github.com/zfsonlinux/zfs/releases/download/zfs-$(zfs_VERSION)/zfs-$(zfs_VERSION).tar.gz
 zfs_PREPARE = \
     $(COMMON_PREPARE) && \
