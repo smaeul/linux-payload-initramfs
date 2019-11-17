@@ -1,7 +1,7 @@
 TARGET = x86_64-linux-musl
 
 modules-y = attr busybox coreboot cryptsetup flashrom kexec-tools pciutils libtirpc linux lvm2 musl outils popt util-linux xz zfs zlib
-prebuilt-y = bin/umount etc/secondstage etc/initramfs.list init
+prebuilt-y = etc/secondstage etc/initramfs.list init
 
 prebuilt-y := $(addprefix staging/,$(prebuilt-y))
 

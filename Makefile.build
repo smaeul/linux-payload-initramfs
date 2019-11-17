@@ -70,7 +70,7 @@ attr_COMPILE = \
 attr_INSTALL = \
     $(MAKE) DESTDIR="$(SYSROOT)" include-install-dev
 
-busybox_VERSION = 1.26.2
+busybox_VERSION = 1.31.1
 busybox_SOURCE = http://busybox.net/downloads/busybox-$(busybox_VERSION).tar.bz2
 busybox_CONFIGURE = \
     cp ../tools/busybox.config .config
