@@ -195,7 +195,7 @@ pciutils_INSTALL = \
 pciutils_LIBS = libpci.so.3
 
 popt_VERSION = 1.16
-popt_SOURCE = http://rpm5.org/files/popt/popt-$(popt_VERSION).tar.gz
+popt_SOURCE = ftp://anduin.linuxfromscratch.org/BLFS/popt/popt-$(popt_VERSION).tar.gz
 popt_PREPARE = \
     $(COMMON_PREPARE) && \
     cp ../tools/config.sub .
