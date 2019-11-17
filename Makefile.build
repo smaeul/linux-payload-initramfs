@@ -161,7 +161,7 @@ lvm2_INSTALL = \
     $(MAKE) DESTDIR="$(SYSROOT)" install_device-mapper
 lvm2_LIBS = libdevmapper.so.1.02
 
-musl_VERSION = git-2d7d05f031e014068a61d3076c6178513395d2ae
+musl_VERSION = git-90251cf73dfdd44e7a3f085d236e89a7dff1b00b
 musl_SOURCE = git://git.musl-libc.org/musl
 musl_CONFIGURE = \
     $(COMMON_CONFIGURE) --enable-warnings
