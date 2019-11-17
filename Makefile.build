@@ -176,17 +176,6 @@ openssl_CONFIGURE = \
     $(COMMON_CFLAGS) $($(MODULE)_CFLAGS) $(COMMON_LDFLAGS) $($(MODULE)_LDFLAGS)
 openssl_LIBS = libcrypto.so.1.1 libssl.so.1.1
 
-outils_VERSION = git-c6fe3a3f95b447a221ba51f9807d796d88a0580d
-outils_SOURCE = https://github.com/chneukirchen/outils
-outils_CONFIGURE = \
-    true
-outils_COMPILE = \
-    $(MAKE) CC="$(CC)" CPP="$(CPP)" CXX="$(CXX)" \
-    CFLAGS="$(COMMON_CFLAGS) $($(MODULE)_CFLAGS)" LDFLAGS="$(COMMON_LDFLAGS) $($(MODULE)_LDFLAGS)"
-outils_INSTALL = \
-    $(MAKE) DESTDIR="$(SYSROOT)" PREFIX= install
-outils_BINS = signify
-
 pciutils_VERSION = 3.5.4
 pciutils_SOURCE = https://www.kernel.org/pub/software/utils/pciutils/pciutils-$(pciutils_VERSION).tar.xz
 pciutils_CONFIGURE = \
