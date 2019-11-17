@@ -103,7 +103,7 @@ flashrom_INSTALL = \
     install -m0755 flashrom $(SYSROOT)/bin
 flashrom_BINS = flashrom
 
-kexec-tools_VERSION = 2.0.14
+kexec-tools_VERSION = 2.0.20
 kexec-tools_SOURCE = https://www.kernel.org/pub/linux/utils/kernel/kexec/kexec-tools-$(kexec-tools_VERSION).tar.xz
 kexec-tools_PREPARE = \
     $(COMMON_PREPARE) && \
