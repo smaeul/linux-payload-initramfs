@@ -55,7 +55,7 @@ sysroot: musl-cross-make
 	ln -fs bin $(CURDIR)/sysroot/$(TARGET)/sbin
 
 $(modules-y): | sources staging sysroot
-	$(MAKE) -f Makefile.build MODULE=$@ TARGET=$(TARGET) stage
+	PATH=$(CURDIR)/sysroot/bin:$(PATH); $(MAKE) -f Makefile.build MODULE=$@ TARGET=$(TARGET) stage
 
 $(prebuilt-y): staging/%: prebuilt/% | staging
 	cp $< $@
