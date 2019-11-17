@@ -67,7 +67,7 @@ busybox_INSTALL = \
     install -m0755 busybox $(SYSROOT)/bin
 busybox_BINS = busybox
 
-coreboot_VERSION = git-9a848dde8b34a854af716670f5c993c49c1ab22e
+coreboot_VERSION = git-4.10
 coreboot_SOURCE = https://review.coreboot.org/coreboot
 coreboot_CFLAGS = \
     -DCMOS_HAL=1 \
