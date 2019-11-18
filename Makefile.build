@@ -84,13 +84,6 @@ coreboot_INSTALL = \
     $(MAKE) -C util/nvramtool DESTDIR="$(SYSROOT)" PREFIX= install
 coreboot_BINS = cbmem nvramtool
 
-cryptsetup_VERSION = 1.7.5
-cryptsetup_SOURCE = https://www.kernel.org/pub/linux/utils/cryptsetup/v1.7/cryptsetup-$(cryptsetup_VERSION).tar.xz
-cryptsetup_CONFIGURE = \
-    $(COMMON_CONFIGURE) --disable-selinux --disable-udev --with-crypto_backend=kernel
-cryptsetup_BINS = cryptsetup dmsetup
-cryptsetup_LIBS = libcryptsetup.so.4
-
 flashrom_VERSION = v1.1
 flashrom_SOURCE = https://download.flashrom.org/releases/flashrom-$(flashrom_VERSION).tar.bz2
 flashrom_CONFIGURE = \
