@@ -43,7 +43,7 @@ COMMON_UNPACK_GIT = \
     git -C $(WORKDIR) checkout -q $($(MODULE)_VERSION:git-%=%)
 COMMON_UNPACK_TAR = \
     sha256sum -c hashes/$(notdir $($(MODULE)_LOCAL_SOURCE)).sha256 && \
-    tar xf $($(MODULE)_LOCAL_SOURCE) && \
+    busybox tar xf $($(MODULE)_LOCAL_SOURCE) && \
     mv $(MODULE)-$($(MODULE)_VERSION) $(WORKDIR)
 COMMON_PREPARE = \
     for p in ../patches/$(MODULE)*; do if test -f "$$p"; then patch -p1 -i "$$p"; fi; done
