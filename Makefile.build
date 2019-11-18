@@ -140,15 +140,15 @@ libtirpc_INSTALL = \
     ln -fns $(SYSROOT)/include/tirpc/* $(SYSROOT)/include
 libtirpc_LIBS = libtirpc.so.3
 
-linux_VERSION = 4.9.33
-linux_SOURCE = https://cdn.kernel.org/pub/linux/kernel/v4.x/linux-$(linux_VERSION).tar.xz
+linux_VERSION = 5.3.11
+linux_SOURCE = https://cdn.kernel.org/pub/linux/kernel/v5.x/linux-$(linux_VERSION).tar.xz
 linux_CONFIGURE = \
     $(MAKE) defconfig
 linux_COMPILE = \
     $(MAKE) usr
 linux_INSTALL = \
     install -m0755 usr/gen_init_cpio $(SYSHOST)/bin && \
-    install -m0755 scripts/gen_initramfs_list.sh $(SYSHOST)/bin/gen_initramfs_list
+    install -m0755 usr/gen_initramfs_list.sh $(SYSHOST)/bin/gen_initramfs_list
 
 lvm2_VERSION = 2.03.06
 lvm2_SOURCE = https://mirrors.kernel.org/sourceware/lvm2/LVM2.$(lvm2_VERSION).tgz
