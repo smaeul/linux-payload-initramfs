@@ -176,7 +176,7 @@ openssl_CONFIGURE = \
     $(COMMON_CFLAGS) $($(MODULE)_CFLAGS) $(COMMON_LDFLAGS) $($(MODULE)_LDFLAGS)
 openssl_LIBS = libcrypto.so.1.1 libssl.so.1.1
 
-pciutils_VERSION = 3.5.4
+pciutils_VERSION = 3.6.2
 pciutils_SOURCE = https://www.kernel.org/pub/software/utils/pciutils/pciutils-$(pciutils_VERSION).tar.xz
 pciutils_CONFIGURE = \
     true
