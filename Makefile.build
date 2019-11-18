@@ -91,7 +91,7 @@ cryptsetup_CONFIGURE = \
 cryptsetup_BINS = cryptsetup dmsetup
 cryptsetup_LIBS = libcryptsetup.so.4
 
-flashrom_VERSION = 0.9.9
+flashrom_VERSION = v1.1
 flashrom_SOURCE = https://download.flashrom.org/releases/flashrom-$(flashrom_VERSION).tar.bz2
 flashrom_CONFIGURE = \
     true
