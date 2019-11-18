@@ -143,18 +143,6 @@ linux_INSTALL = \
     install -m0755 usr/gen_init_cpio $(SYSHOST)/bin && \
     install -m0755 usr/gen_initramfs_list.sh $(SYSHOST)/bin/gen_initramfs_list
 
-lvm2_VERSION = 2.03.06
-lvm2_SOURCE = https://mirrors.kernel.org/sourceware/lvm2/LVM2.$(lvm2_VERSION).tgz
-lvm2_UNPACK = \
-    sha256sum -c hashes/$(notdir $($(MODULE)_LOCAL_SOURCE)).sha256 && \
-    tar xf $($(MODULE)_LOCAL_SOURCE) && \
-    mv LVM2.$($(MODULE)_VERSION) $(WORKDIR)
-lvm2_COMPILE = \
-    $(MAKE) device-mapper
-lvm2_INSTALL = \
-    $(MAKE) DESTDIR="$(SYSROOT)" install_device-mapper
-lvm2_LIBS = libdevmapper.so.1.02
-
 musl_VERSION = git-90251cf73dfdd44e7a3f085d236e89a7dff1b00b
 musl_SOURCE = git://git.musl-libc.org/musl
 musl_CONFIGURE = \
