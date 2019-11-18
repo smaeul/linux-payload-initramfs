@@ -171,13 +171,6 @@ pciutils_INSTALL = \
     ln -s libpci.so.3 $(SYSROOT)/lib/libpci.so
 pciutils_LIBS = libpci.so.3
 
-popt_VERSION = 1.16
-popt_SOURCE = ftp://anduin.linuxfromscratch.org/BLFS/popt/popt-$(popt_VERSION).tar.gz
-popt_PREPARE = \
-    $(COMMON_PREPARE) && \
-    cp ../tools/config.sub .
-popt_LIBS = libpopt.so.0
-
 util-linux_VERSION = 2.34
 util-linux_SOURCE = https://www.kernel.org/pub/linux/utils/util-linux/v2.34/util-linux-$(util-linux_VERSION).tar.xz
 util-linux_CONFIGURE = \

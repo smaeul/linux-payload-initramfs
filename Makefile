@@ -1,6 +1,6 @@
 TARGET = x86_64-linux-musl
 
-modules-y = busybox coreboot flashrom kexec-tools pciutils libaio libtirpc linux musl openssl popt util-linux xz zfs zlib
+modules-y = busybox coreboot flashrom kexec-tools pciutils libaio libtirpc linux musl openssl util-linux xz zfs zlib
 prebuilt-y = etc/secondstage etc/initramfs.list init
 
 prebuilt-y := $(addprefix staging/,$(prebuilt-y))
@@ -16,7 +16,6 @@ libaio: musl
 libtirpc: musl
 linux: musl
 openssl: zlib musl
-popt: musl
 util-linux: musl
 xz: musl
 zfs: libaio libtirpc musl openssl util-linux zlib
