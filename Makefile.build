@@ -197,8 +197,8 @@ popt_PREPARE = \
     cp ../tools/config.sub .
 popt_LIBS = libpopt.so.0
 
-util-linux_VERSION = 2.29.2
-util-linux_SOURCE = https://www.kernel.org/pub/linux/utils/util-linux/v2.29/util-linux-$(util-linux_VERSION).tar.xz
+util-linux_VERSION = 2.34
+util-linux_SOURCE = https://www.kernel.org/pub/linux/utils/util-linux/v2.34/util-linux-$(util-linux_VERSION).tar.xz
 util-linux_CONFIGURE = \
     $(COMMON_CONFIGURE) --enable-libblkid --enable-libuuid --disable-all-programs \
     --disable-bash-completion --without-cap-ng --without-python --without-tinfo --without-udev \
