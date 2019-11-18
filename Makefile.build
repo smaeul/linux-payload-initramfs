@@ -205,7 +205,7 @@ util-linux_CONFIGURE = \
     --without-user --without-util
 util-linux_LIBS = libblkid.so.1 libuuid.so.1
 
-xz_VERSION = 5.2.3
+xz_VERSION = 5.2.4
 xz_SOURCE = https://tukaani.org/xz/xz-$(xz_VERSION).tar.xz
 xz_CONFIGURE = \
     $(COMMON_CONFIGURE) --enable-decoders=lzma1,lzma2,x86 --enable-encoders=lzma1,lzma2,x86 \
