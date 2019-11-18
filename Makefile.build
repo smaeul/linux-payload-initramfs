@@ -126,7 +126,7 @@ libaio_COMPILE = \
 libaio_INSTALL = \
     $(MAKE) DESTDIR="$(SYSROOT)" prefix= install
 
-libtirpc_VERSION = git-dd9c7cf4f8f375c6d641b760d124650c418c2ce3
+libtirpc_VERSION = git-d918e41d88985a083f9a0acbd2062d4178d2a0f4
 libtirpc_SOURCE = git://linux-nfs.org/~steved/libtirpc
 libtirpc_PREPARE = \
     $(COMMON_PREPARE) && \
