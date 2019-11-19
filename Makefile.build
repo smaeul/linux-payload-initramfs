@@ -8,9 +8,11 @@ ifeq ($(ARCH),x86_64)
 MACHINE ?= sandybridge
 endif
 
-CC = $(SYSROOT)/../bin/$(TARGET)-gcc
+export PATH := $(SYSHOST)/bin:$(PATH)
+
+CC  = $(TARGET)-gcc -fPIE -pie
 CPP = $(CC) -E
-CXX = $(SYSROOT)/../bin/$(TARGET)-g++
+CXX = $(TARGET)-g++ -fPIE -pie
 
 COMMON_CFLAGS = \
     -fdata-sections \
@@ -19,6 +21,8 @@ COMMON_CFLAGS = \
     -fno-exceptions \
     -fno-unwind-tables \
     -fomit-frame-pointer \
+    -fstack-clash-protection \
+    -fstack-protector-strong \
     -g0 \
     -march=$(MACHINE) \
     -mtune=$(MACHINE) \
@@ -28,6 +32,7 @@ COMMON_CFLAGS = \
 COMMON_LDFLAGS = \
     -s \
     -Wl,--as-needed \
+    -Wl,--gc-sections \
     -Wl,--hash-style=both \
     -Wl,--sort-section=alignment \
     -Wl,-z,noexecstack \
@@ -46,6 +51,7 @@ COMMON_UNPACK_TAR = \
     busybox tar xf $($(MODULE)_LOCAL_SOURCE) && \
     mv $(MODULE)-$($(MODULE)_VERSION) $(WORKDIR)
 COMMON_PREPARE = \
+    for f in $$(find -name config.sub); do cp ../tools/config.sub $$f; done; \
     for p in ../patches/$(MODULE)*; do if test -f "$$p"; then patch -p1 -i "$$p"; fi; done
 COMMON_CONFIGURE = \
     ./configure CC="$(CC)" CPP="$(CPP)" CXX="$(CXX)" \
@@ -53,11 +59,13 @@ COMMON_CONFIGURE = \
     CONFIG_SITE=../tools/config.site \
     --host=$(TARGET) \
     --prefix= --bindir=/bin --libdir=/lib --sbindir=/bin \
-    --disable-nls --disable-rpath --disable-static
+    --disable-nls --disable-rpath --enable-static --enable-shared \
+    --with-pic
 COMMON_COMPILE = \
-    $(MAKE)
+    $(MAKE) CROSS_COMPILE="$(TARGET)-" CC="$(CC)" CPP="$(CPP)" CXX="$(CXX)" \
+    CFLAGS="$(COMMON_CFLAGS) $($(MODULE)_CFLAGS)" LDFLAGS="$(COMMON_LDFLAGS) $($(MODULE)_LDFLAGS)"
 COMMON_INSTALL = \
-    $(MAKE) DESTDIR="$(SYSROOT)" install
+    $(COMMON_COMPILE) DESTDIR="$(SYSROOT)" PREFIX= prefix= install
 
 busybox_VERSION = 1.31.1
 busybox_SOURCE = http://busybox.net/downloads/busybox-$(busybox_VERSION).tar.bz2
@@ -75,49 +83,54 @@ coreboot_CFLAGS = \
 coreboot_CONFIGURE = \
     true
 coreboot_COMPILE = \
-    $(MAKE) -C util/cbmem CC="$(CC)" CPP="$(CPP)" CXX="$(CXX)" \
-    CFLAGS="$(COMMON_CFLAGS) $($(MODULE)_CFLAGS)" LDFLAGS="$(COMMON_LDFLAGS) $($(MODULE)_LDFLAGS)" && \
-    $(MAKE) -C util/nvramtool CC="$(CC)" CPP="$(CPP)" CXX="$(CXX)" \
-    CFLAGS="$(COMMON_CFLAGS) $($(MODULE)_CFLAGS)" LDFLAGS="$(COMMON_LDFLAGS) $($(MODULE)_LDFLAGS)"
+    $(COMMON_COMPILE) -C util/cbmem && \
+    $(COMMON_COMPILE) -C util/nvramtool
 coreboot_INSTALL = \
-    $(MAKE) -C util/cbmem DESTDIR="$(SYSROOT)" PREFIX= install && \
-    $(MAKE) -C util/nvramtool DESTDIR="$(SYSROOT)" PREFIX= install
+    $(COMMON_INSTALL) -C util/cbmem && \
+    $(COMMON_INSTALL) -C util/nvramtool
 coreboot_BINS = cbmem nvramtool
+
+eudev_VERSION = 3.2.9
+eudev_SOURCE = https://dev.gentoo.org/~blueness/eudev/eudev-$(eudev_VERSION).tar.gz
+eudev_CONFIGURE = \
+    $(COMMON_CONFIGURE) \
+    --disable-blkid \
+    --disable-introspection \
+    --disable-kmod \
+    --disable-manpages \
+    --disable-mtd_probe \
+    --disable-programs \
+    --disable-selinux \
+    --disable-shared
 
 flashrom_VERSION = v1.1
 flashrom_SOURCE = https://download.flashrom.org/releases/flashrom-$(flashrom_VERSION).tar.bz2
 flashrom_CONFIGURE = \
     true
 flashrom_COMPILE = \
-    $(MAKE) CC="$(CC)" CPP="$(CPP)" CXX="$(CXX)" \
-    CFLAGS="$(COMMON_CFLAGS) $($(MODULE)_CFLAGS)" LDFLAGS="$(COMMON_LDFLAGS) $($(MODULE)_LDFLAGS)" \
-    CONFIG_INTERNAL=yes CONFIG_NOTHING=yes
+    $(COMMON_COMPILE) CONFIG_INTERNAL=yes CONFIG_NOTHING=yes
 flashrom_INSTALL = \
     install -m0755 flashrom $(SYSROOT)/bin
 flashrom_BINS = flashrom
 
 kexec-tools_VERSION = 2.0.20
 kexec-tools_SOURCE = https://www.kernel.org/pub/linux/utils/kernel/kexec/kexec-tools-$(kexec-tools_VERSION).tar.xz
-kexec-tools_PREPARE = \
-    $(COMMON_PREPARE) && \
-    cp ../tools/config.sub config && \
-    sed -i '/bzImage_support_efi_boot;/s/int/extern int/' kexec/arch/x86_64/kexec-bzImage64.c && \
-    sed -i 's/loff_t/off_t/g' vmcore-dmesg/vmcore-dmesg.c
 kexec-tools_CONFIGURE = \
-    $(COMMON_CONFIGURE) --without-xen
+    $(COMMON_CONFIGURE) \
+    --without-lzma \
+    --without-xen \
+    --without-zlib
+kexec-tools_COMPILE = \
+    $(MAKE)
 kexec-tools_BINS = kexec
 
 libaio_VERSION = 0.3.112
 libaio_SOURCE = http://ftp.debian.org/debian/pool/main/liba/libaio/libaio_$(libaio_VERSION).orig.tar.xz
 libaio_CFLAGS = \
-    -fPIC -I.
+    -fPIC \
+    -I.
 libaio_CONFIGURE = \
     true
-libaio_COMPILE = \
-    $(MAKE) CC="$(CC)" CPP="$(CPP)" CXX="$(CXX)" \
-    CFLAGS="$(COMMON_CFLAGS) $($(MODULE)_CFLAGS)" LDFLAGS="$(COMMON_LDFLAGS) $($(MODULE)_LDFLAGS)"
-libaio_INSTALL = \
-    $(MAKE) DESTDIR="$(SYSROOT)" prefix= install
 
 libtirpc_VERSION = git-d918e41d88985a083f9a0acbd2062d4178d2a0f4
 libtirpc_SOURCE = git://linux-nfs.org/~steved/libtirpc
@@ -127,33 +140,83 @@ libtirpc_PREPARE = \
     cp ../tools/queue.h tirpc/sys && \
     ./bootstrap
 libtirpc_CONFIGURE = \
-    $(COMMON_CONFIGURE) --disable-gssapi --disable-ipv6 --disable-symvers
-libtirpc_INSTALL = \
-    $(COMMON_INSTALL) && \
-    ln -fns $(SYSROOT)/include/tirpc/* $(SYSROOT)/include
-libtirpc_LIBS = libtirpc.so.3
+    $(COMMON_CONFIGURE) \
+    --disable-authdes \
+    --disable-gssapi \
+    --disable-ipv6 \
+    --disable-shared \
+    --disable-symvers
 
 linux_VERSION = 5.3.11
 linux_SOURCE = https://cdn.kernel.org/pub/linux/kernel/v5.x/linux-$(linux_VERSION).tar.xz
 linux_CONFIGURE = \
-    $(MAKE) defconfig
+    $(MAKE) ARCH=$(ARCH) CROSS_COMPILE=$(TARGET)- defconfig
 linux_COMPILE = \
-    $(MAKE) usr
+    $(MAKE) ARCH=$(ARCH) CROSS_COMPILE=$(TARGET)- usr
 linux_INSTALL = \
     install -m0755 usr/gen_init_cpio $(SYSHOST)/bin && \
     install -m0755 usr/gen_initramfs_list.sh $(SYSHOST)/bin/gen_initramfs_list
 
+lvm2_VERSION = 2.03.06
+lvm2_SOURCE = https://mirrors.kernel.org/sourceware/lvm2/LVM2.$(lvm2_VERSION).tgz
+lvm2_UNPACK = \
+    sha256sum -c hashes/$(notdir $($(MODULE)_LOCAL_SOURCE)).sha256 && \
+    tar xf $($(MODULE)_LOCAL_SOURCE) && \
+    mv LVM2.$($(MODULE)_VERSION) $(WORKDIR)
+lvm2_CONFIGURE = \
+    $(COMMON_CONFIGURE) \
+    --disable-readline \
+    --enable-static_link \
+    --with-cache=none \
+    --with-thin=none \
+    --with-vdo=none
+lvm2_COMPILE = \
+    $(COMMON_COMPILE) lib.device-mapper
+lvm2_INSTALL = \
+    $(COMMON_INSTALL:install=install_include install_pkgconfig install_static) -C libdm
+
 musl_VERSION = git-90251cf73dfdd44e7a3f085d236e89a7dff1b00b
 musl_SOURCE = git://git.musl-libc.org/musl
 musl_CONFIGURE = \
-    $(COMMON_CONFIGURE) --enable-warnings
+    $(COMMON_CONFIGURE) \
+    --enable-warnings
 musl_LIBS = ld-musl-$(ARCH).so.1
+
+ncurses_VERSION = 6.1
+ncurses_SOURCE = https://invisible-mirror.net/archives/ncurses/ncurses-$(ncurses_VERSION).tar.gz
+ncurses_CFLAGS = \
+    -D_GNU_SOURCE
+ncurses_CONFIGURE = \
+    $(COMMON_CONFIGURE) \
+    --disable-database \
+    --disable-db-install \
+    --disable-gnat-projects \
+    --disable-home-terminfo \
+    --disable-rpath-hack \
+    --disable-termcap \
+    --enable-overwrite \
+    --enable-pc-files \
+    --enable-warnings \
+    --enable-widec \
+    --with-cxx \
+    --with-fallbacks=linux \
+    --with-normal \
+    --without-ada \
+    --without-curses-h \
+    --without-cxx-binding \
+    --without-develop \
+    --without-gpm \
+    --without-manpages \
+    --without-progs \
+    --without-shared \
+    --without-termlib
 
 openssl_VERSION = 1.1.1d
 openssl_SOURCE = https://www.openssl.org/source/openssl-$(openssl_VERSION).tar.gz
 openssl_CONFIGURE = \
     env CC="$(CC)" CPP="$(CPP)" CXX="$(CXX)" \
-    ./Configure --prefix=/ linux-$(ARCH) shared zlib \
+    ./Configure --prefix=/ linux-$(ARCH) shared \
+    no-async no-ct no-des no-ec no-engine no-hw no-ocsp no-sock no-ssl no-threads no-tls no-ui-console no-zlib \
     $(COMMON_CFLAGS) $($(MODULE)_CFLAGS) $(COMMON_LDFLAGS) $($(MODULE)_LDFLAGS)
 openssl_LIBS = libcrypto.so.1.1 libssl.so.1.1
 
@@ -162,47 +225,104 @@ pciutils_SOURCE = https://www.kernel.org/pub/software/utils/pciutils/pciutils-$(
 pciutils_CONFIGURE = \
     true
 pciutils_COMPILE = \
-    $(MAKE) CC="$(CC)" CPP="$(CPP)" CXX="$(CXX)" \
-    OPT="$(COMMON_CFLAGS) $($(MODULE)_CFLAGS)" LDFLAGS="$(COMMON_LDFLAGS) $($(MODULE)_LDFLAGS)" \
-    DNS=no HWDB=no IDSDIR=/ LIBKMOD=no SHARED=yes ZLIB=no lib/libpci.so.$(pciutils_VERSION)
+    $(COMMON_COMPILE) DNS=no HWDB=no IDSDIR=/ LIBKMOD=no SHARED=no ZLIB=no
 pciutils_INSTALL = \
-    $(MAKE) DESTDIR="$(SYSROOT)" PREFIX= install-lib && \
-    mv $(SYSROOT)/lib/libpci.so.$(pciutils_VERSION) $(SYSROOT)/lib/libpci.so.3 && \
-    ln -s libpci.so.3 $(SYSROOT)/lib/libpci.so
-pciutils_LIBS = libpci.so.3
+    $(COMMON_INSTALL) STRIP= install-lib
+
+petitboot_VERSION = v1.10.4
+petitboot_SOURCE = https://github.com/open-power/petitboot/releases/download/$(petitboot_VERSION)/petitboot-$(petitboot_VERSION).tar.gz
+# HOST_PROG_CRYPTSETUP
+# HOST_PROG_DMIDECODE
+# HOST_PROG_SCSI_RESCAN
+# HOST_PROG_SFTP
+# HOST_PROG_SHUTDOWN
+# HOST_PROG_VGCHANGE
+# HOST_PROG_VGSCAN
+petitboot_CONFIGURE = \
+    $(COMMON_CONFIGURE) \
+    --disable-crypt \
+    --disable-mtd \
+    --disable-platform-auto \
+    --disable-static \
+    --enable-busybox \
+    --enable-hard-lockdown \
+    --with-ncursesw \
+    --with-signed-boot=openssl \
+    --with-tftp=busybox \
+    --without-fdt \
+    --without-ncurses \
+    --without-twin-fbdev \
+    --without-twin-x11 \
+    VERIFY_DIGEST=sha256 \
+    HOST_PROG_CP=/bin/cp \
+    HOST_PROG_IP=/bin/ip \
+    HOST_PROG_KEXEC=/bin/kexec \
+    HOST_PROG_MOUNT=/bin/mount \
+    HOST_PROG_PB_EXEC=/bin/pb-exec \
+    HOST_PROG_PB_PLUGIN=/bin/pb-plugin \
+    HOST_PROG_SH=/bin/sh \
+    HOST_PROG_TFTP=/bin/tftp \
+    HOST_PROG_UDHCPC=/bin/udhcpc \
+    HOST_PROG_UDHCPC6=/bin/udhcpc6 \
+    HOST_PROG_UMOUNT=/bin/umount \
+    HOST_PROG_WGET=/bin/wget
+petitboot_BINS = pb-config pb-discover pb-event pb-exec pb-plugin pb-sos pb-udhcpc petitboot-nc
 
 util-linux_VERSION = 2.34
 util-linux_SOURCE = https://www.kernel.org/pub/linux/utils/util-linux/v2.34/util-linux-$(util-linux_VERSION).tar.xz
 util-linux_CONFIGURE = \
-    $(COMMON_CONFIGURE) --enable-libblkid --enable-libuuid --disable-all-programs \
-    --disable-bash-completion --without-cap-ng --without-python --without-tinfo --without-udev \
-    --without-user --without-util
+    $(COMMON_CONFIGURE) \
+    --disable-all-programs \
+    --disable-assert \
+    --disable-bash-completion \
+    --without-btrfs \
+    --disable-libfdisk \
+    --disable-libmount \
+    --disable-libsmartcols \
+    --disable-widechar \
+    --enable-libblkid \
+    --enable-libuuid \
+    --without-audit \
+    --without-cap-ng \
+    --without-libz \
+    --without-ncurses \
+    --without-ncursesw \
+    --without-python \
+    --without-readline \
+    --without-slang \
+    --without-smack \
+    --without-systemd \
+    --without-tinfo \
+    --without-udev \
+    --without-user \
+    --without-utempter \
+    --without-util
 util-linux_LIBS = libblkid.so.1 libuuid.so.1
-
-xz_VERSION = 5.2.4
-xz_SOURCE = https://tukaani.org/xz/xz-$(xz_VERSION).tar.xz
-xz_CONFIGURE = \
-    $(COMMON_CONFIGURE) --enable-decoders=lzma1,lzma2,x86 --enable-encoders=lzma1,lzma2,x86 \
-    --enable-small --enable-threads=posix --disable-doc --disable-lzma-links --disable-scripts
-xz_LIBS = liblzma.so.5
 
 zfs_VERSION = 0.8.2
 zfs_SOURCE = https://github.com/zfsonlinux/zfs/releases/download/zfs-$(zfs_VERSION)/zfs-$(zfs_VERSION).tar.gz
-zfs_PREPARE = \
-    $(COMMON_PREPARE) && \
-    cp ../tools/config.sub config
 zfs_CONFIGURE = \
-    $(COMMON_CONFIGURE) --disable-systemd --disable-sysvinit --with-config=user \
-    --with-mounthelperdir=/bin --with-tirpc
+    $(COMMON_CONFIGURE) \
+    --disable-systemd \
+    --disable-sysvinit \
+    --enable-linux-builtin \
+    --with-config=user \
+    --with-mounthelperdir=/bin \
+    --with-tirpc \
+    --without-python \
+    ac_cv_header_libudev_h=no \
+    ac_cv_search_udev_device_get_is_initialized=no
 zfs_BINS = zfs zpool
-zfs_LIBS = libnvpair.so.1 libuutil.so.1 libzfs.so.2 libzfs_core.so.1 libzpool.so.2
+zfs_LIBS = libnvpair.so.1 libuutil.so.1 libzfs.so.2 libzfs_core.so.1
 
 zlib_VERSION = 1.2.11
 zlib_SOURCE = http://zlib.net/zlib-$(zlib_VERSION).tar.xz
 zlib_CONFIGURE = \
     CC="$(CC)" CPP="$(CPP)" CXX="$(CXX)" \
     CFLAGS="$(COMMON_CFLAGS) $($(MODULE)_CFLAGS)" LDFLAGS="$(COMMON_LDFLAGS) $($(MODULE)_LDFLAGS)" \
-    ./configure --prefix= --const
+    ./configure \
+    --prefix= \
+    --const
 zlib_LIBS = libz.so.1
 
 ifneq ($(findstring git,$($(MODULE)_VERSION)),)

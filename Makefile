@@ -2,16 +2,19 @@ TARGET = x86_64-linux-musl
 
 modules-y += busybox
 modules-y += coreboot
+modules-y += eudev
 modules-y += flashrom
 modules-y += kexec-tools
-modules-y += pciutils
 modules-y += libaio
 modules-y += libtirpc
 modules-y += linux
+modules-y += lvm2
 modules-y += musl
+modules-y += ncurses
 modules-y += openssl
+modules-y += pciutils
+modules-y += petitboot
 modules-y += util-linux
-modules-y += xz
 modules-y += zfs
 modules-y += zlib
 
@@ -24,15 +27,18 @@ all: initramfs.cpio.xz
 
 busybox: musl
 coreboot: musl
-flashrom: pciutils musl
-kexec-tools: musl xz zlib
-pciutils: musl
+eudev: musl
+flashrom: musl pciutils
+kexec-tools: musl
 libaio: musl
 libtirpc: musl
 linux: musl
-openssl: zlib musl
+lvm2: musl
+ncurses: musl
+openssl: musl
+pciutils: musl
+petitboot: eudev musl lvm2 ncurses openssl
 util-linux: musl
-xz: musl
 zfs: libaio libtirpc musl openssl util-linux zlib
 zlib: musl
 
@@ -59,15 +65,16 @@ stageclean:
 
 staging:
 	mkdir -p $@ $@/bin $@/boot $@/dev $@/etc $@/lib $@/proc $@/sys
-	ln -fs busybox staging/bin/mount
-	ln -fs busybox staging/bin/sh
+	for sym in cp ip mount sh tftp udhcpc udhcpc6 umount wget; do \
+	  ln -fs busybox staging/bin/$$sym; \
+	done
 
 sysroot: musl-cross-make
 	$(MAKE) -C musl-cross-make OUTPUT=$(CURDIR)/sysroot TARGET=$(TARGET) install
 	ln -fs bin $(CURDIR)/sysroot/$(TARGET)/sbin
 
 $(modules-y): | sources staging sysroot
-	PATH=$(CURDIR)/sysroot/bin:$(PATH); $(MAKE) -f Makefile.build MODULE=$@ TARGET=$(TARGET) stage
+	$(MAKE) -f Makefile.build MODULE=$@ TARGET=$(TARGET) stage
 
 $(prebuilt-y): staging/%: prebuilt/% | staging
 	cp $< $@
