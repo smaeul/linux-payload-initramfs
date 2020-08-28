@@ -67,7 +67,7 @@ COMMON_COMPILE = \
 COMMON_INSTALL = \
     $(COMMON_COMPILE) DESTDIR="$(SYSROOT)" PREFIX= prefix= install
 
-busybox_VERSION = 1.31.1
+busybox_VERSION = 1.32.0
 busybox_SOURCE = http://busybox.net/downloads/busybox-$(busybox_VERSION).tar.bz2
 busybox_CONFIGURE = \
     cp ../tools/busybox.config .config
@@ -75,7 +75,7 @@ busybox_INSTALL = \
     install -m0755 busybox $(SYSROOT)/bin
 busybox_BINS = busybox
 
-coreboot_VERSION = git-4.10
+coreboot_VERSION = git-4.12
 coreboot_SOURCE = https://review.coreboot.org/coreboot
 coreboot_CFLAGS = \
     -DCMOS_HAL=1 \
@@ -103,7 +103,7 @@ eudev_CONFIGURE = \
 eudev_BINS = udevadm udevd
 eudev_LIBS = libudev.so.1
 
-flashrom_VERSION = v1.1
+flashrom_VERSION = v1.2
 flashrom_SOURCE = https://download.flashrom.org/releases/flashrom-$(flashrom_VERSION).tar.bz2
 flashrom_CONFIGURE = \
     true
@@ -132,7 +132,7 @@ libaio_CFLAGS = \
 libaio_CONFIGURE = \
     true
 
-libtirpc_VERSION = git-d918e41d88985a083f9a0acbd2062d4178d2a0f4
+libtirpc_VERSION = git-libtirpc-1-2-6
 libtirpc_SOURCE = git://linux-nfs.org/~steved/libtirpc
 libtirpc_PREPARE = \
     $(COMMON_PREPARE) && \
@@ -147,7 +147,7 @@ libtirpc_CONFIGURE = \
     --disable-shared \
     --disable-symvers
 
-linux_VERSION = 5.3.11
+linux_VERSION = 5.8.5
 linux_SOURCE = https://cdn.kernel.org/pub/linux/kernel/v5.x/linux-$(linux_VERSION).tar.xz
 linux_CONFIGURE = \
     $(MAKE) ARCH=$(ARCH) CROSS_COMPILE=$(TARGET)- defconfig
@@ -155,12 +155,13 @@ linux_COMPILE = \
     $(MAKE) ARCH=$(ARCH) CROSS_COMPILE=$(TARGET)- usr
 linux_INSTALL = \
     install -m0755 usr/gen_init_cpio $(SYSHOST)/bin && \
-    install -m0755 usr/gen_initramfs_list.sh $(SYSHOST)/bin/gen_initramfs_list && \
+    install -m0755 usr/gen_initramfs.sh $(SYSHOST)/bin/gen_initramfs && \
+    sed -i 's@usr/gen_init_cpio \$$timestamp@cat@' $(SYSHOST)/bin/gen_initramfs && \
     $(CC) $(COMMON_CFLAGS) $($(MODULE)_CFLAGS) $(COMMON_LDFLAGS) $($(MODULE)_LDFLAGS) \
         -o $(SYSROOT)/bin/gen_init_cpio usr/gen_init_cpio.c
 linux_BINS = gen_init_cpio
 
-lvm2_VERSION = 2.03.06
+lvm2_VERSION = 2.03.10
 lvm2_SOURCE = https://mirrors.kernel.org/sourceware/lvm2/LVM2.$(lvm2_VERSION).tgz
 lvm2_UNPACK = \
     sha256sum -c hashes/$(notdir $($(MODULE)_LOCAL_SOURCE)).sha256 && \
@@ -178,14 +179,14 @@ lvm2_COMPILE = \
 lvm2_INSTALL = \
     $(COMMON_INSTALL:install=install_include install_pkgconfig install_static) -C libdm
 
-musl_VERSION = git-90251cf73dfdd44e7a3f085d236e89a7dff1b00b
+musl_VERSION = git-v1.2.1
 musl_SOURCE = git://git.musl-libc.org/musl
 musl_CONFIGURE = \
     $(COMMON_CONFIGURE) \
     --enable-warnings
 musl_LIBS = ld-musl-$(ARCH).so.1
 
-ncurses_VERSION = 6.1
+ncurses_VERSION = 6.2
 ncurses_SOURCE = https://invisible-mirror.net/archives/ncurses/ncurses-$(ncurses_VERSION).tar.gz
 ncurses_CFLAGS = \
     -D_GNU_SOURCE
@@ -214,7 +215,7 @@ ncurses_CONFIGURE = \
     --without-shared \
     --without-termlib
 
-openssl_VERSION = 1.1.1d
+openssl_VERSION = 1.1.1g
 openssl_SOURCE = https://www.openssl.org/source/openssl-$(openssl_VERSION).tar.gz
 openssl_CONFIGURE = \
     env CC="$(CC)" CPP="$(CPP)" CXX="$(CXX)" \
@@ -223,7 +224,7 @@ openssl_CONFIGURE = \
     $(COMMON_CFLAGS) $($(MODULE)_CFLAGS) $(COMMON_LDFLAGS) $($(MODULE)_LDFLAGS)
 openssl_LIBS = libcrypto.so.1.1 libssl.so.1.1
 
-pciutils_VERSION = 3.6.2
+pciutils_VERSION = 3.7.0
 pciutils_SOURCE = https://www.kernel.org/pub/software/utils/pciutils/pciutils-$(pciutils_VERSION).tar.xz
 pciutils_CONFIGURE = \
     true
@@ -271,8 +272,8 @@ petitboot_CONFIGURE = \
     HOST_PROG_WGET=/bin/wget
 petitboot_BINS = pb-config pb-discover pb-event pb-exec pb-plugin pb-sos pb-udhcpc petitboot-nc
 
-util-linux_VERSION = 2.34
-util-linux_SOURCE = https://www.kernel.org/pub/linux/utils/util-linux/v2.34/util-linux-$(util-linux_VERSION).tar.xz
+util-linux_VERSION = 2.36
+util-linux_SOURCE = https://www.kernel.org/pub/linux/utils/util-linux/v$(util-linux_VERSION)/util-linux-$(util-linux_VERSION).tar.xz
 util-linux_CONFIGURE = \
     $(COMMON_CONFIGURE) \
     --disable-all-programs \
@@ -302,7 +303,7 @@ util-linux_CONFIGURE = \
     --without-util
 util-linux_LIBS = libblkid.so.1 libuuid.so.1
 
-zfs_VERSION = 0.8.2
+zfs_VERSION = 0.8.4
 zfs_SOURCE = https://github.com/zfsonlinux/zfs/releases/download/zfs-$(zfs_VERSION)/zfs-$(zfs_VERSION).tar.gz
 zfs_CONFIGURE = \
     $(COMMON_CONFIGURE) \

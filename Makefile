@@ -52,7 +52,7 @@ initramfs.cpio.xz: initramfs.list linux
 	sysroot/bin/gen_init_cpio -t 0 $< | xz -9 --check=crc32 > $@.tmp && mv $@.tmp $@
 
 initramfs.list: linux staging $(modules-y) $(prebuilt-y)
-	sysroot/bin/gen_initramfs_list -u squash -g squash staging > $@.tmp && mv $@.tmp $@
+	sysroot/bin/gen_initramfs -u squash -g squash staging > $@.tmp && mv $@.tmp $@
 
 musl-cross-make:
 	git clone https://github.com/richfelker/musl-cross-make

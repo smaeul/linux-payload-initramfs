@@ -1,6 +1,6 @@
-From b4f0abce3b4e6ea4ea18b37eaa2572f7967122e9 Mon Sep 17 00:00:00 2001
+From dd3df160f7f559ca27291c36a655ef41ba4d78e4 Mon Sep 17 00:00:00 2001
 From: Richard Laager <rlaager@wiktel.com>
-Date: Mon, 15 Apr 2019 00:49:46 -0500
+Date: Tue, 18 Aug 2020 01:12:39 -0500
 Subject: [PATCH] Remove GRUB restrictions
 
 The GRUB restrictions are based around the pool's bootfs property.
@@ -27,20 +27,16 @@ system to define a features=grub is a much more useful approach. The
 user could set that on the boot pool at creation, and things would
 Just Work.
 
+Reviewed-by: Paul Dagnelie <pcd@delphix.com>
+Reviewed-by: Brian Behlendorf <behlendorf1@llnl.gov>
 Signed-off-by: Richard Laager <rlaager@wiktel.com>
+Closes #8627
 ---
- lib/libzfs/libzfs_pool.c  | 20 +-------------------
- man/man5/zpool-features.5 | 11 -----------
- man/man8/zfs.8            |  3 ---
- module/zfs/spa.c          | 21 +--------------------
- module/zfs/zfs_ioctl.c    | 39 ---------------------------------------
- 5 files changed, 2 insertions(+), 92 deletions(-)
-
 diff --git a/lib/libzfs/libzfs_pool.c b/lib/libzfs/libzfs_pool.c
-index 6c797d06b6c..eb20ce5f934 100644
+index d45b87ce6..c95402faf 100644
 --- a/lib/libzfs/libzfs_pool.c
 +++ b/lib/libzfs/libzfs_pool.c
-@@ -3104,7 +3104,6 @@ zpool_vdev_attach(zpool_handle_t *zhp,
+@@ -3108,7 +3108,6 @@ zpool_vdev_attach(zpool_handle_t *zhp,
  	uint_t children;
  	nvlist_t *config_root;
  	libzfs_handle_t *hdl = zhp->zpool_hdl;
@@ -48,7 +44,7 @@ index 6c797d06b6c..eb20ce5f934 100644
  
  	if (replacing)
  		(void) snprintf(msg, sizeof (msg), dgettext(TEXT_DOMAIN,
-@@ -3164,18 +3163,8 @@ zpool_vdev_attach(zpool_handle_t *zhp,
+@@ -3168,18 +3167,8 @@ zpool_vdev_attach(zpool_handle_t *zhp,
  
  	zcmd_free_nvlists(&zc);
  
@@ -68,7 +64,7 @@ index 6c797d06b6c..eb20ce5f934 100644
  
  	switch (errno) {
  	case ENOTSUP:
-@@ -3594,13 +3583,6 @@ zpool_vdev_remove(zpool_handle_t *zhp, const char *path)
+@@ -3598,13 +3587,6 @@ zpool_vdev_remove(zpool_handle_t *zhp, const char *path)
  		return (zfs_error(hdl, EZFS_BADVERSION, msg));
  	}
  
@@ -83,10 +79,10 @@ index 6c797d06b6c..eb20ce5f934 100644
  
  	if (zfs_ioctl(hdl, ZFS_IOC_VDEV_REMOVE, &zc) == 0)
 diff --git a/module/zfs/spa.c b/module/zfs/spa.c
-index c76163b6f34..5e923c2234e 100644
+index cf8462cec..ec8b6ed60 100644
 --- a/module/zfs/spa.c
 +++ b/module/zfs/spa.c
-@@ -597,7 +597,6 @@ spa_prop_validate(spa_t *spa, nvlist_t *props)
+@@ -603,7 +603,6 @@ spa_prop_validate(spa_t *spa, nvlist_t *props)
  
  			if (!error) {
  				objset_t *os;
@@ -94,7 +90,7 @@ index c76163b6f34..5e923c2234e 100644
  
  				if (strval == NULL || strval[0] == '\0') {
  					objnum = zpool_prop_default_numeric(
-@@ -609,27 +608,9 @@ spa_prop_validate(spa_t *spa, nvlist_t *props)
+@@ -615,27 +614,9 @@ spa_prop_validate(spa_t *spa, nvlist_t *props)
  				if (error != 0)
  					break;
  
@@ -124,7 +120,7 @@ index c76163b6f34..5e923c2234e 100644
  					objnum = dmu_objset_id(os);
  				}
 diff --git a/module/zfs/zfs_ioctl.c b/module/zfs/zfs_ioctl.c
-index debe733dab7..0d24cbf7570 100644
+index f2e808d6f..fec8547c4 100644
 --- a/module/zfs/zfs_ioctl.c
 +++ b/module/zfs/zfs_ioctl.c
 @@ -346,23 +346,6 @@ history_str_get(zfs_cmd_t *zc)
@@ -151,7 +147,7 @@ index debe733dab7..0d24cbf7570 100644
  /*
   * Return non-zero if the spa version is less than requested version.
   */
-@@ -4285,18 +4268,6 @@ zfs_check_settable(const char *dsname, nvpair_t *pair, cred_t *cr)
+@@ -4288,18 +4271,6 @@ zfs_check_settable(const char *dsname, nvpair_t *pair, cred_t *cr)
  				}
  				spa_close(spa, FTAG);
  			}
@@ -170,7 +166,7 @@ index debe733dab7..0d24cbf7570 100644
  		}
  		break;
  
-@@ -4338,16 +4309,6 @@ zfs_check_settable(const char *dsname, nvpair_t *pair, cred_t *cr)
+@@ -4341,16 +4312,6 @@ zfs_check_settable(const char *dsname, nvpair_t *pair, cred_t *cr)
  		    intval != ZFS_DNSIZE_LEGACY) {
  			spa_t *spa;
  
@@ -187,3 +183,6 @@ index debe733dab7..0d24cbf7570 100644
  			if ((err = spa_open(dsname, &spa, FTAG)) != 0)
  				return (err);
  
+-- 
+2.26.2
+
