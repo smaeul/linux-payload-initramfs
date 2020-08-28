@@ -71,17 +71,12 @@ var() {
   done
 }
 
-export PATH=/bin
+export PATH=/usr/local/bin:/usr/bin:/bin
 trap 'error "Unexpected error!"' EXIT HUP INT QUIT TERM
 
 mountpoint -q /proc || mount -nt proc proc /proc
 mountpoint -q /dev || mount -nt devtmpfs dev /dev
 mountpoint -q /sys || mount -nt sysfs sys /sys
-
-print "Reopening encrypted volume"
-dmsetup create internal --table "$(cat /table)"
-head -c 128 /dev/urandom >/table
-rm -f /table
 
 root=$(var root)
 pool=${root%%/*}
@@ -90,10 +85,20 @@ flag rw && opts=rw
 flag ro && opts=ro
 opts=${opts},$(var rootflags)
 type=$(var rootfstype)
-print "Mounting root dataset '${root}' (${opts})"
-zpool import -d /dev/mapper -N "$pool"
-sleep 1
-mount -i -o "$opts" -t "${type-zfs}" "$root" /root
+type=${type-zfs}
+
+if test "$type" = "zfs"; then
+  print "Importing pool '${pool}'"
+  zpool import -N "$pool"
+
+  if test "$(zfs get -H -o value encryption "$root")" != "off"; then
+    print "Unlocking encrypted root dataset"
+    zfs load-key "$(zfs get -H -o value encryptionroot "$root")"
+  fi
+fi
+
+print "Mounting root filesystem '${root}' (${opts})"
+mount -i -o "$opts" -t "$type" "$root" /root
 
 init=$(var init)
 print "Switching to '/root' (${init})"

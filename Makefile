@@ -64,7 +64,7 @@ stageclean:
 	rm -fr *-build/.staged initramfs.cpio.xz initramfs.list staging
 
 staging:
-	mkdir -p $@ $@/bin $@/boot $@/dev $@/etc $@/lib $@/proc $@/sys
+	mkdir -p $@ $@/bin $@/boot $@/dev $@/etc $@/lib $@/proc $@/run $@/sys $@/tmp
 	for sym in cp ip mount sh tftp udhcpc udhcpc6 umount wget; do \
 	  ln -fs busybox staging/bin/$$sym; \
 	done

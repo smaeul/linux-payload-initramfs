@@ -60,14 +60,9 @@ mountpoint -q /sys || mount -nt sysfs sys /sys
 promptc "Press 'r' to enter rescue mode... "
 test "$input" = "r" && rescue
 
-disk=$(echo /sys/devices/pci0000:00/0000:00:1f.2/ata*/host*/target*/*/block/sd*)
-disk=/dev/$(basename "$disk")
-print "Unlocking internal disk ${disk}"
-cryptsetup open --allow-discards -r -t 20 -T 3 --type luks "${disk}" internal
-
 print "Searching for ZFS pools"
 # Returns success even with no pools found
-zpool import -a -d /dev/mapper -N 2>/dev/null
+zpool import -a -N 2>/dev/null
 pool=$(zpool list -H -o name)
 test -z "$pool" && error "No ZFS pool found!"
 print "Imported ZFS pool '${pool}'"
@@ -83,6 +78,11 @@ if test -z "$bootfs"; then
   print "No rootfs, falling back to top-level dataset"
   bootfs=$pool
   kerneldir=/boot
+fi
+
+if test "$(zfs get -H -o value encryption "$bootfs")" != "off"; then
+  print "Unlocking encrypted /boot dataset"
+  zfs load-key "$(zfs get -H -o value encryptionroot "$bootfs")"
 fi
 
 print "Mounting boot dataset '${bootfs}'"
@@ -107,13 +107,7 @@ cmdb=$(cat "/boot${kerneldir}/cmdline${kernel#vmlinuz}" 2>/dev/null || true)
 print "Exporting ZFS pool '${pool}'"
 zpool export "$pool"
 
-print "Exporting LUKS master key"
-dmsetup table --showkeys internal > /table
-
-print "Closing encrypted volume"
-cryptsetup close internal
-
-print "Generating initramfs"
+print "Generating second stage initramfs"
 gen_init_cpio -t 0 /etc/initramfs.list > /initramfs
 
 print "Executing new kernel"
