@@ -99,9 +99,9 @@ eudev_CONFIGURE = \
     --disable-kmod \
     --disable-manpages \
     --disable-mtd_probe \
-    --disable-programs \
-    --disable-selinux \
-    --disable-shared
+    --disable-selinux
+eudev_BINS = udevadm udevd
+eudev_LIBS = libudev.so.1
 
 flashrom_VERSION = v1.1
 flashrom_SOURCE = https://download.flashrom.org/releases/flashrom-$(flashrom_VERSION).tar.bz2
