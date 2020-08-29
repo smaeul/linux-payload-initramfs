@@ -2,18 +2,12 @@ TARGET = x86_64-linux-musl
 
 modules-y += busybox
 modules-y += coreboot
-modules-y += eudev
-modules-y += flashrom
 modules-y += kexec-tools
 modules-y += libaio
 modules-y += libtirpc
 modules-y += linux
-modules-y += lvm2
 modules-y += musl
-modules-y += ncurses
 modules-y += openssl
-modules-y += pciutils
-modules-y += petitboot
 modules-y += util-linux
 modules-y += zfs
 modules-y += zlib
@@ -65,7 +59,7 @@ stageclean:
 
 staging:
 	mkdir -p $@ $@/bin $@/boot $@/dev $@/etc $@/lib $@/proc $@/run $@/sys $@/tmp
-	for sym in cp ip mount sh tftp udhcpc udhcpc6 umount wget; do \
+	for sym in mount sh umount; do \
 	  ln -fs busybox staging/bin/$$sym; \
 	done
 
