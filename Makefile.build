@@ -32,6 +32,7 @@ COMMON_CFLAGS = \
 COMMON_LDFLAGS = \
     -s \
     -Wl,--as-needed \
+    -Wl,--exclude-libs,libz.a \
     -Wl,--gc-sections \
     -Wl,--hash-style=gnu \
     -Wl,--sort-section=alignment \
@@ -321,13 +322,15 @@ zfs_LIBS = libnvpair.so.1 libuutil.so.1 libzfs.so.2 libzfs_core.so.1
 
 zlib_VERSION = 1.2.11
 zlib_SOURCE = http://zlib.net/zlib-$(zlib_VERSION).tar.xz
+zlib_CFLAGS = \
+    -fPIC
 zlib_CONFIGURE = \
     CC="$(CC)" CPP="$(CPP)" CXX="$(CXX)" \
     CFLAGS="$(COMMON_CFLAGS) $($(MODULE)_CFLAGS)" LDFLAGS="$(COMMON_LDFLAGS) $($(MODULE)_LDFLAGS)" \
     ./configure \
     --prefix= \
-    --const
-zlib_LIBS = libz.so.1
+    --const \
+    --static
 
 ifneq ($(findstring git,$($(MODULE)_VERSION)),)
 $(MODULE)_LOCAL_SOURCE = sources/$(MODULE).git
