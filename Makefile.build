@@ -321,6 +321,10 @@ util-linux_LIBS = libblkid.so.1 libuuid.so.1
 
 zfs_VERSION = 0.8.4
 zfs_SOURCE = https://github.com/zfsonlinux/zfs/releases/download/zfs-$(zfs_VERSION)/zfs-$(zfs_VERSION).tar.gz
+# Disable x86 assembly
+zfs_PREPARE = \
+    $(COMMON_PREPARE) && \
+    sed -i 's/x86_64 | x86 | i686)/dummy)/' configure
 zfs_CONFIGURE = \
     $(COMMON_CONFIGURE) \
     --disable-systemd \
