@@ -110,5 +110,9 @@ zpool export "$pool"
 print "Generating second stage initramfs"
 gen_init_cpio -t 0 /etc/initramfs.list > /initramfs
 
+print "Setting boot mode"
+nvramtool -w boot_option=Normal
+nvramtool -w reboot_counter=0
+
 print "Executing new kernel"
 kexec -f -x -y --command-line="${cmda} ${cmdb}" --initrd=/initramfs /kernel
