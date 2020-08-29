@@ -89,7 +89,7 @@ coreboot_COMPILE = \
 coreboot_INSTALL = \
     $(COMMON_INSTALL) -C util/cbmem && \
     $(COMMON_INSTALL) -C util/nvramtool
-coreboot_BINS = cbmem nvramtool
+coreboot_BINS = nvramtool
 
 eudev_VERSION = 3.2.9
 eudev_SOURCE = https://dev.gentoo.org/~blueness/eudev/eudev-$(eudev_VERSION).tar.gz
