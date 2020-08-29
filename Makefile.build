@@ -32,7 +32,7 @@ COMMON_CFLAGS = \
 COMMON_LDFLAGS = \
     -s \
     -Wl,--as-needed \
-    -Wl,--exclude-libs,libz.a \
+    -Wl,--exclude-libs,libcrypto.a:libssl.a:libz.a \
     -Wl,--gc-sections \
     -Wl,--hash-style=gnu \
     -Wl,--sort-section=alignment \
@@ -220,10 +220,25 @@ openssl_VERSION = 1.1.1g
 openssl_SOURCE = https://www.openssl.org/source/openssl-$(openssl_VERSION).tar.gz
 openssl_CONFIGURE = \
     env CC="$(CC)" CPP="$(CPP)" CXX="$(CXX)" \
-    ./Configure --prefix=/ linux-$(ARCH) shared \
-    no-async no-ct no-des no-ec no-engine no-hw no-ocsp no-sock no-ssl no-threads no-tls no-ui-console no-zlib \
+    ./Configure --prefix=/ linux-$(ARCH) \
+    no-asm no-async no-autoalginit no-autoerrinit no-autoload-config \
+    no-capieng no-comp no-ct \
+    no-deprecated no-des no-dgram no-dh no-dso no-dtls \
+    no-ec no-ec2m no-engine no-err \
+    no-filenames \
+    no-gost \
+    no-hw no-hw-padlock \
+    no-nextprotoneg \
+    no-ocsp \
+    no-pinshared no-psk \
+    no-rdrand no-rfc3779 \
+    no-shared no-sock no-srp no-srtp no-ssl no-static-engine \
+    no-tests no-threads no-tls no-ts \
+    no-ui-console \
+    no-zlib \
     $(COMMON_CFLAGS) $($(MODULE)_CFLAGS) $(COMMON_LDFLAGS) $($(MODULE)_LDFLAGS)
-openssl_LIBS = libcrypto.so.1.1 libssl.so.1.1
+openssl_INSTALL = \
+    $(COMMON_INSTALL)_sw
 
 pciutils_VERSION = 3.7.0
 pciutils_SOURCE = https://www.kernel.org/pub/software/utils/pciutils/pciutils-$(pciutils_VERSION).tar.xz

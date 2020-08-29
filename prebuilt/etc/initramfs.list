@@ -13,9 +13,7 @@ file /bin/zpool /bin/zpool 755 0 0
 file /init /etc/secondstage 755 0 0
 file /lib/ld-musl-x86_64.so.1 /lib/ld-musl-x86_64.so.1 755 0 0
 file /lib/libblkid.so.1 /lib/libblkid.so.1 755 0 0
-file /lib/libcrypto.so.1.1 /lib/libcrypto.so.1.1 755 0 0
 file /lib/libnvpair.so.1 /lib/libnvpair.so.1 755 0 0
-file /lib/libssl.so.1.1 /lib/libssl.so.1.1 755 0 0
 file /lib/libudev.so.1 /lib/libudev.so.1 755 0 0
 file /lib/libuuid.so.1 /lib/libuuid.so.1 755 0 0
 file /lib/libuutil.so.1 /lib/libuutil.so.1 755 0 0
