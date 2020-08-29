@@ -111,4 +111,4 @@ print "Generating second stage initramfs"
 gen_init_cpio -t 0 /etc/initramfs.list > /initramfs
 
 print "Executing new kernel"
-kexec -f -s -x -y --command-line="${cmda} ${cmdb}" --initrd=/initramfs /kernel
+kexec -f -x -y --command-line="${cmda} ${cmdb}" --initrd=/initramfs /kernel
