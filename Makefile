@@ -40,16 +40,13 @@ clean: stageclean
 	rm -fr *-build sysroot
 
 distclean: clean
-	rm -fr musl-cross-make sources
+	rm -fr sources
 
 initramfs.cpio.xz: initramfs.list linux
 	sysroot/bin/gen_init_cpio -t 0 $< | xz -9 --check=crc32 > $@.tmp && mv $@.tmp $@
 
 initramfs.list: linux staging $(modules-y) $(prebuilt-y)
 	sysroot/bin/gen_initramfs -u squash -g squash staging > $@.tmp && mv $@.tmp $@
-
-musl-cross-make:
-	git clone https://github.com/richfelker/musl-cross-make
 
 sources:
 	mkdir -p $@
@@ -63,8 +60,9 @@ staging:
 	  ln -fs busybox staging/bin/$$sym; \
 	done
 
-sysroot: musl-cross-make
-	$(MAKE) -C musl-cross-make OUTPUT=$(CURDIR)/sysroot TARGET=$(TARGET) install
+sysroot:
+	mkdir -p $(CURDIR)/sysroot/bin
+	mkdir -p $(CURDIR)/sysroot/$(TARGET)/bin
 	ln -fs bin $(CURDIR)/sysroot/$(TARGET)/sbin
 
 $(modules-y): | sources staging sysroot

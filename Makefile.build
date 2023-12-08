@@ -10,9 +10,9 @@ endif
 
 export PATH := $(SYSHOST)/bin:$(PATH)
 
-CC  = $(TARGET)-gcc -fno-pie -no-pie
+CC  = $(TARGET)-gcc --sysroot=$(SYSROOT) -fno-pie -no-pie
 CPP = $(CC) -E
-CXX = $(TARGET)-g++ -fno-pie -no-pie
+CXX = $(TARGET)-g++ --sysroot=$(SYSROOT) -fno-pie -no-pie
 
 COMMON_CFLAGS = \
     -fdata-sections \
