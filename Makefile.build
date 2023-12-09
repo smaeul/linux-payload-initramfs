@@ -216,8 +216,11 @@ ncurses_CONFIGURE = \
     --without-shared \
     --without-termlib
 
-openssl_VERSION = 1.1.1w
+openssl_VERSION = 3.2.0
 openssl_SOURCE = https://www.openssl.org/source/openssl-$(openssl_VERSION).tar.gz
+openssl_PREPARE = \
+    $(COMMON_PREPARE) && \
+    sed -i 's/elif defined(__riscv)/elif defined(OPENSSL_CPUID_OBJ) \&\& defined(__riscv)/' $$(grep -rlF 'elif defined(__riscv)')
 openssl_CONFIGURE = \
     env CC="$(CC)" CPP="$(CPP)" CXX="$(CXX)" \
     ./Configure --prefix=/ linux-$(ARCH) \
