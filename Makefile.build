@@ -417,7 +417,7 @@ $(WORKDIR)/.installed: $(WORKDIR)/.compiled
 	find $(SYSROOT) -name '*.la' -delete
 	touch $@
 
-$(WORKDIR)/.staged: $(WORKDIR)/.installed
+$(WORKDIR)/.staged: staging $(WORKDIR)/.installed
 	for b in $($(MODULE)_BINS); do install -m0755 "$(SYSROOT)/bin/$${b}" "$(STAGING)/bin" && $(TARGET)-strip -s "$(STAGING)/bin/$${b}"; done
 	for l in $($(MODULE)_LIBS); do install -m0755 "$(SYSROOT)/lib/$${l}" "$(STAGING)/lib" && $(TARGET)-strip -s "$(STAGING)/lib/$${l}"; done
 	touch $@
