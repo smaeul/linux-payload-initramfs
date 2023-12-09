@@ -56,7 +56,7 @@ COMMON_PREPARE = \
 COMMON_CONFIGURE = \
     ./configure CC="$(CC)" CPP="$(CPP)" CXX="$(CXX)" \
     CFLAGS="$(COMMON_CFLAGS) $($(MODULE)_CFLAGS)" LDFLAGS="$(COMMON_LDFLAGS) $($(MODULE)_LDFLAGS)" \
-    CONFIG_SITE=../tools/config.site \
+    CONFIG_SITE=../tools/config.site PKG_CONFIG=false \
     --host=$(TARGET) \
     --prefix= --bindir=/bin --libdir=/lib --sbindir=/bin \
     --disable-nls --disable-rpath --enable-static --enable-shared \
@@ -67,7 +67,7 @@ COMMON_COMPILE = \
 COMMON_INSTALL = \
     $(COMMON_COMPILE) DESTDIR="$(SYSROOT)" PREFIX= prefix= install
 
-busybox_VERSION = 1.32.0
+busybox_VERSION = 1.36.1
 busybox_SOURCE = http://busybox.net/downloads/busybox-$(busybox_VERSION).tar.bz2
 busybox_CONFIGURE = \
     cp ../tools/busybox.config .config
@@ -75,7 +75,7 @@ busybox_INSTALL = \
     install -m0755 busybox $(SYSROOT)/bin
 busybox_BINS = busybox
 
-coreboot_VERSION = git-4.12
+coreboot_VERSION = git-4.22.01
 coreboot_SOURCE = https://review.coreboot.org/coreboot
 coreboot_CFLAGS = \
     -DCMOS_HAL=1 \
@@ -90,8 +90,8 @@ coreboot_INSTALL = \
     $(COMMON_INSTALL) -C util/nvramtool
 coreboot_BINS = nvramtool
 
-eudev_VERSION = 3.2.9
-eudev_SOURCE = https://dev.gentoo.org/~blueness/eudev/eudev-$(eudev_VERSION).tar.gz
+eudev_VERSION = 3.2.14
+eudev_SOURCE = https://github.com/eudev-project/eudev/releases/download/v$(eudev_VERSION)/eudev-$(eudev_VERSION).tar.gz
 eudev_CONFIGURE = \
     $(COMMON_CONFIGURE) \
     --disable-blkid \
@@ -113,7 +113,7 @@ flashrom_INSTALL = \
     install -m0755 flashrom $(SYSROOT)/bin
 flashrom_BINS = flashrom
 
-kexec-tools_VERSION = 2.0.20
+kexec-tools_VERSION = 2.0.27
 kexec-tools_SOURCE = https://www.kernel.org/pub/linux/utils/kernel/kexec/kexec-tools-$(kexec-tools_VERSION).tar.xz
 kexec-tools_CONFIGURE = \
     $(COMMON_CONFIGURE) \
@@ -124,15 +124,15 @@ kexec-tools_COMPILE = \
     $(MAKE)
 kexec-tools_BINS = kexec
 
-libaio_VERSION = 0.3.112
-libaio_SOURCE = http://ftp.debian.org/debian/pool/main/liba/libaio/libaio_$(libaio_VERSION).orig.tar.xz
+libaio_VERSION = 0.3.113
+libaio_SOURCE = http://ftp.debian.org/debian/pool/main/liba/libaio/libaio_$(libaio_VERSION).orig.tar.gz
 libaio_CFLAGS = \
     -fPIC \
     -I.
 libaio_CONFIGURE = \
     true
 
-libtirpc_VERSION = git-libtirpc-1-2-6
+libtirpc_VERSION = git-libtirpc-1-3-4
 libtirpc_SOURCE = git://linux-nfs.org/~steved/libtirpc
 libtirpc_PREPARE = \
     $(COMMON_PREPARE) && \
@@ -147,21 +147,22 @@ libtirpc_CONFIGURE = \
     --disable-shared \
     --disable-symvers
 
-linux_VERSION = 5.8.5
-linux_SOURCE = https://cdn.kernel.org/pub/linux/kernel/v5.x/linux-$(linux_VERSION).tar.xz
+linux_VERSION = 6.6.5
+linux_SOURCE = https://cdn.kernel.org/pub/linux/kernel/v6.x/linux-$(linux_VERSION).tar.xz
 linux_CONFIGURE = \
     $(MAKE) ARCH=$(ARCH) CROSS_COMPILE=$(TARGET)- defconfig
 linux_COMPILE = \
-    $(MAKE) ARCH=$(ARCH) CROSS_COMPILE=$(TARGET)- usr
-linux_INSTALL = \
-    install -m0755 usr/gen_init_cpio $(SYSHOST)/bin && \
-    install -m0755 usr/gen_initramfs.sh $(SYSHOST)/bin/gen_initramfs && \
-    sed -i 's@usr/gen_init_cpio \$$timestamp@cat@' $(SYSHOST)/bin/gen_initramfs && \
+    cc -o usr/gen_init_cpio.host usr/gen_init_cpio.c && \
     $(CC) $(COMMON_CFLAGS) $($(MODULE)_CFLAGS) $(COMMON_LDFLAGS) $($(MODULE)_LDFLAGS) \
-        -o $(SYSROOT)/bin/gen_init_cpio usr/gen_init_cpio.c
+        -o usr/gen_init_cpio.target usr/gen_init_cpio.c && \
+    sed -i 's@usr/gen_init_cpio \$$timestamp@cat@' usr/gen_initramfs.sh
+linux_INSTALL = \
+    install -m0755 usr/gen_init_cpio.host $(SYSHOST)/bin/gen_init_cpio && \
+    install -m0755 usr/gen_init_cpio.target $(SYSROOT)/bin/gen_init_cpio && \
+    install -m0755 usr/gen_initramfs.sh $(SYSHOST)/bin/gen_initramfs
 linux_BINS = gen_init_cpio
 
-lvm2_VERSION = 2.03.10
+lvm2_VERSION = 2.03.23
 lvm2_SOURCE = https://mirrors.kernel.org/sourceware/lvm2/LVM2.$(lvm2_VERSION).tgz
 lvm2_UNPACK = \
     sha256sum -c hashes/$(notdir $($(MODULE)_LOCAL_SOURCE)).sha256 && \
@@ -179,14 +180,14 @@ lvm2_COMPILE = \
 lvm2_INSTALL = \
     $(COMMON_INSTALL:install=install_include install_pkgconfig install_static) -C libdm
 
-musl_VERSION = git-v1.2.1
+musl_VERSION = git-v1.2.4
 musl_SOURCE = git://git.musl-libc.org/musl
 musl_CONFIGURE = \
     $(COMMON_CONFIGURE) \
     --enable-warnings
 musl_LIBS = ld-musl-$(ARCH).so.1
 
-ncurses_VERSION = 6.2
+ncurses_VERSION = 6.4
 ncurses_SOURCE = https://invisible-mirror.net/archives/ncurses/ncurses-$(ncurses_VERSION).tar.gz
 ncurses_CFLAGS = \
     -D_GNU_SOURCE
@@ -215,7 +216,7 @@ ncurses_CONFIGURE = \
     --without-shared \
     --without-termlib
 
-openssl_VERSION = 1.1.1g
+openssl_VERSION = 1.1.1w
 openssl_SOURCE = https://www.openssl.org/source/openssl-$(openssl_VERSION).tar.gz
 openssl_CONFIGURE = \
     env CC="$(CC)" CPP="$(CPP)" CXX="$(CXX)" \
@@ -239,7 +240,7 @@ openssl_CONFIGURE = \
 openssl_INSTALL = \
     $(COMMON_INSTALL)_sw
 
-pciutils_VERSION = 3.7.0
+pciutils_VERSION = 3.10.0
 pciutils_SOURCE = https://www.kernel.org/pub/software/utils/pciutils/pciutils-$(pciutils_VERSION).tar.xz
 pciutils_CONFIGURE = \
     true
@@ -248,7 +249,7 @@ pciutils_COMPILE = \
 pciutils_INSTALL = \
     $(COMMON_INSTALL) STRIP= install-lib
 
-petitboot_VERSION = v1.10.4
+petitboot_VERSION = v1.14
 petitboot_SOURCE = https://github.com/open-power/petitboot/releases/download/$(petitboot_VERSION)/petitboot-$(petitboot_VERSION).tar.gz
 # HOST_PROG_CRYPTSETUP
 # HOST_PROG_DMIDECODE
@@ -287,8 +288,8 @@ petitboot_CONFIGURE = \
     HOST_PROG_WGET=/bin/wget
 petitboot_BINS = pb-config pb-discover pb-event pb-exec pb-plugin pb-sos pb-udhcpc petitboot-nc
 
-util-linux_VERSION = 2.36
-util-linux_SOURCE = https://www.kernel.org/pub/linux/utils/util-linux/v$(util-linux_VERSION)/util-linux-$(util-linux_VERSION).tar.xz
+util-linux_VERSION = 2.39.3
+util-linux_SOURCE = https://www.kernel.org/pub/linux/utils/util-linux/v2.39/util-linux-$(util-linux_VERSION).tar.xz
 util-linux_CONFIGURE = \
     $(COMMON_CONFIGURE) \
     --disable-all-programs \
@@ -318,12 +319,12 @@ util-linux_CONFIGURE = \
     --without-util
 util-linux_LIBS = libblkid.so.1 libuuid.so.1
 
-zfs_VERSION = 0.8.4
+zfs_VERSION = 2.2.2
 zfs_SOURCE = https://github.com/zfsonlinux/zfs/releases/download/zfs-$(zfs_VERSION)/zfs-$(zfs_VERSION).tar.gz
 # Disable x86 assembly
 zfs_PREPARE = \
     $(COMMON_PREPARE) && \
-    sed -i 's/x86_64 | x86 | i686)/dummy)/' configure
+    sed -i -e 's/x86_64 | x86 | i686)/dummy)/' -e 's/curl-config/false/g' configure
 zfs_CONFIGURE = \
     $(COMMON_CONFIGURE) \
     --disable-systemd \
@@ -336,10 +337,10 @@ zfs_CONFIGURE = \
     ac_cv_header_libudev_h=no \
     ac_cv_search_udev_device_get_is_initialized=no
 zfs_BINS = zfs zpool
-zfs_LIBS = libnvpair.so.1 libuutil.so.1 libzfs.so.2 libzfs_core.so.1
+zfs_LIBS = libnvpair.so.3 libuutil.so.3 libzfs.so.4 libzfs_core.so.3
 
-zlib_VERSION = 1.2.11
-zlib_SOURCE = http://zlib.net/zlib-$(zlib_VERSION).tar.xz
+zlib_VERSION = 1.3
+zlib_SOURCE = https://www.zlib.net/zlib-$(zlib_VERSION).tar.xz
 zlib_CFLAGS = \
     -fPIC
 zlib_CONFIGURE = \
