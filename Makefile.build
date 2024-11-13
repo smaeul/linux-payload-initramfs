@@ -72,7 +72,7 @@ busybox_SOURCE = http://busybox.net/downloads/busybox-$(busybox_VERSION).tar.bz2
 busybox_CONFIGURE = \
     cp ../tools/busybox.config .config
 busybox_INSTALL = \
-    install -m0755 busybox $(SYSROOT)/bin
+    install -m0755 busybox -Dt $(SYSROOT)/bin
 busybox_BINS = busybox
 
 coreboot_VERSION = git-4.22.01
@@ -110,7 +110,7 @@ flashrom_CONFIGURE = \
 flashrom_COMPILE = \
     $(COMMON_COMPILE) CONFIG_INTERNAL=yes CONFIG_NOTHING=yes
 flashrom_INSTALL = \
-    install -m0755 flashrom $(SYSROOT)/bin
+    install -m0755 flashrom -Dt $(SYSROOT)/bin
 flashrom_BINS = flashrom
 
 kexec-tools_VERSION = 2.0.27
@@ -320,7 +320,7 @@ util-linux_CONFIGURE = \
     --without-user \
     --without-utempter \
     --without-util
-util-linux_LIBS = libblkid.so.1 libuuid.so.1
+util-linux_LIBS = libblkid.so.* libuuid.so.*
 
 zfs_VERSION = 2.2.2
 zfs_SOURCE = https://github.com/zfsonlinux/zfs/releases/download/zfs-$(zfs_VERSION)/zfs-$(zfs_VERSION).tar.gz
@@ -340,7 +340,7 @@ zfs_CONFIGURE = \
     ac_cv_header_libudev_h=no \
     ac_cv_search_udev_device_get_is_initialized=no
 zfs_BINS = zfs zpool
-zfs_LIBS = libnvpair.so.3 libuutil.so.3 libzfs.so.4 libzfs_core.so.3
+zfs_LIBS = libnvpair.so.* libuutil.so.* libzfs.so.* libzfs_core.so.*
 
 zlib_VERSION = 1.3
 zlib_SOURCE = https://www.zlib.net/zlib-$(zlib_VERSION).tar.xz
@@ -420,7 +420,8 @@ $(WORKDIR)/.installed: $(WORKDIR)/.compiled
 	find $(SYSROOT) -name '*.la' -delete
 	touch $@
 
-$(WORKDIR)/.staged: staging $(WORKDIR)/.installed
-	for b in $($(MODULE)_BINS); do install -m0755 "$(SYSROOT)/bin/$${b}" "$(STAGING)/bin" && $(TARGET)-strip -s "$(STAGING)/bin/$${b}"; done
-	for l in $($(MODULE)_LIBS); do install -m0755 "$(SYSROOT)/lib/$${l}" "$(STAGING)/lib" && $(TARGET)-strip -s "$(STAGING)/lib/$${l}"; done
+$(WORKDIR)/.staged: $(WORKDIR)/.installed
+	mkdir -p "$(STAGING)/bin" "$(STAGING)/lib"
+	for b in $($(MODULE)_BINS); do cp -P $(SYSROOT)/bin/$${b} "$(STAGING)/bin" && $(TARGET)-strip -s $(STAGING)/bin/$${b}; done
+	for l in $($(MODULE)_LIBS); do cp -P $(SYSROOT)/lib/$${l} "$(STAGING)/lib" && $(TARGET)-strip -s $(STAGING)/lib/$${l}; done
 	touch $@
