@@ -48,20 +48,14 @@ initramfs.cpio.lz4: initramfs.list linux
 initramfs.cpio.xz: initramfs.list linux
 	sysroot/bin/gen_init_cpio -t 0 $< | xz -9 --check=crc32 > $@.tmp && mv $@.tmp $@
 
-initramfs.list: linux staging $(modules-y) $(prebuilt-y)
-	sysroot/bin/gen_initramfs -u squash -g squash staging > $@.tmp && mv $@.tmp $@
+initramfs.list: tools/initramfs.list linux staging $(modules-y) $(prebuilt-y)
+	sysroot/bin/gen_initramfs -u squash -g squash staging > $@.tmp && cat $< >> $@.tmp && mv $@.tmp $@
 
-sources:
+sources staging:
 	mkdir -p $@
 
 stageclean:
 	rm -fr *-build/.staged initramfs.cpio.* initramfs.list staging
-
-staging:
-	mkdir -p $@ $@/bin $@/boot $@/dev $@/etc $@/lib $@/proc $@/run $@/sys $@/tmp
-	for sym in mount sh umount; do \
-	  ln -fs busybox staging/bin/$$sym; \
-	done
 
 sysroot:
 	mkdir -p $(CURDIR)/sysroot/bin
@@ -72,4 +66,5 @@ $(modules-y): | sources staging sysroot
 	$(MAKE) -f Makefile.build MODULE=$@ TARGET=$(TARGET) stage
 
 $(prebuilt-y): staging/%: prebuilt/% | staging
+	mkdir -p $(dir $@)
 	cp $< $@

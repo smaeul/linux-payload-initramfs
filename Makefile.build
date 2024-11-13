@@ -72,8 +72,9 @@ busybox_SOURCE = http://busybox.net/downloads/busybox-$(busybox_VERSION).tar.bz2
 busybox_CONFIGURE = \
     cp ../tools/busybox.config .config
 busybox_INSTALL = \
-    install -m0755 busybox -Dt $(SYSROOT)/bin
-busybox_BINS = busybox
+    install -m0755 busybox -Dt $(SYSROOT)/bin; \
+    for sym in mount sh umount; do ln -fs busybox $(SYSROOT)/bin/$$sym; done
+busybox_BINS = busybox mount sh umount
 
 coreboot_VERSION = git-4.22.01
 coreboot_SOURCE = https://review.coreboot.org/coreboot
