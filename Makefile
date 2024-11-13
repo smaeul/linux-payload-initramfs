@@ -17,7 +17,7 @@ prebuilt-y += etc/initramfs.list
 prebuilt-y += init
 prebuilt-y := $(addprefix staging/,$(prebuilt-y))
 
-all: initramfs.cpio.xz
+all: initramfs.cpio.lz4
 
 busybox: musl
 coreboot: musl
@@ -42,6 +42,9 @@ clean: stageclean
 distclean: clean
 	rm -fr sources
 
+initramfs.cpio.lz4: initramfs.list linux
+	sysroot/bin/gen_init_cpio -t 0 $< | lz4 -l --best --favor-decSpeed > $@.tmp && mv $@.tmp $@
+
 initramfs.cpio.xz: initramfs.list linux
 	sysroot/bin/gen_init_cpio -t 0 $< | xz -9 --check=crc32 > $@.tmp && mv $@.tmp $@
 
@@ -52,7 +55,7 @@ sources:
 	mkdir -p $@
 
 stageclean:
-	rm -fr *-build/.staged initramfs.cpio.xz initramfs.list staging
+	rm -fr *-build/.staged initramfs.cpio.* initramfs.list staging
 
 staging:
 	mkdir -p $@ $@/bin $@/boot $@/dev $@/etc $@/lib $@/proc $@/run $@/sys $@/tmp
