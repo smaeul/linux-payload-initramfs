@@ -23,9 +23,14 @@ endif
 
 export PATH := $(SYSHOST)/bin:$(PATH)
 
+ifeq ($(CONFIG_NOMMU),y)
+CC  = $(TARGET)-gcc --sysroot=$(SYSROOT) -fpie -static -pie
+CXX = $(TARGET)-g++ --sysroot=$(SYSROOT) -fpie -static -pie
+else
 CC  = $(TARGET)-gcc --sysroot=$(SYSROOT) -fno-pie -no-pie
-CPP = $(CC) -E
 CXX = $(TARGET)-g++ --sysroot=$(SYSROOT) -fno-pie -no-pie
+endif
+CPP = $(CC) -E
 
 COMMON_CFLAGS = \
     -fdata-sections \
@@ -81,12 +86,14 @@ COMMON_INSTALL = \
 
 busybox_VERSION = 1.36.1
 busybox_SOURCE = http://busybox.net/downloads/busybox-$(busybox_VERSION).tar.bz2
+busybox_DOTCONFIG = tools/busybox$(if $(filter y,$(CONFIG_NOMMU)),-nommu).config
 busybox_CONFIGURE = \
-    cp ../tools/busybox.config .config
+    cp ../$(busybox_DOTCONFIG) .config
 busybox_INSTALL = \
     install -m0755 busybox -Dt $(SYSROOT)/bin; \
     for sym in mount sh umount; do ln -fs busybox $(SYSROOT)/bin/$$sym; done
 busybox_BINS = busybox mount sh umount
+$(CURDIR)/busybox-build/.configured: $(busybox_DOTCONFIG)
 
 coreboot_VERSION = git-4.22.01
 coreboot_SOURCE = https://review.coreboot.org/coreboot
@@ -436,5 +443,7 @@ $(WORKDIR)/.installed: $(WORKDIR)/.compiled
 $(WORKDIR)/.staged: $(WORKDIR)/.installed
 	mkdir -p "$(STAGING)/bin" "$(STAGING)/lib"
 	for b in $($(MODULE)_BINS); do cp -P $(SYSROOT)/bin/$${b} "$(STAGING)/bin" && $(TARGET)-strip -s $(STAGING)/bin/$${b}; done
+ifneq ($(CONFIG_NOMMU),y)
 	for l in $($(MODULE)_LIBS); do cp -P $(SYSROOT)/lib/$${l} "$(STAGING)/lib" && $(TARGET)-strip -s $(STAGING)/lib/$${l}; done
+endif
 	touch $@

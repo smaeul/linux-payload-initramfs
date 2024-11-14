@@ -1,5 +1,6 @@
 TARGET = x86_64-linux-musl
 
+CONFIG_NOMMU = n
 CONFIG_COREBOOT = y
 CONFIG_ZFS = y
 
@@ -66,7 +67,7 @@ sysroot:
 	ln -fs bin $(CURDIR)/sysroot/$(TARGET)/sbin
 
 $(modules-y) $(modules-n): | sources staging sysroot
-	$(MAKE) -f Makefile.build MODULE=$@ TARGET=$(TARGET) stage
+	$(MAKE) -f Makefile.build MODULE=$@ TARGET=$(TARGET) CONFIG_NOMMU=$(CONFIG_NOMMU) stage
 
 $(prebuilt-y): staging/%: prebuilt/% | staging
 	mkdir -p $(dir $@)
