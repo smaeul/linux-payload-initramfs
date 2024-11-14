@@ -166,7 +166,7 @@ libtirpc_CONFIGURE = \
     --disable-shared \
     --disable-symvers
 
-linux_VERSION = 6.6.5
+linux_VERSION = 6.6.61
 linux_SOURCE = https://cdn.kernel.org/pub/linux/kernel/v6.x/linux-$(linux_VERSION).tar.xz
 linux_CONFIGURE = \
     $(MAKE) ARCH=$(KARCH) CROSS_COMPILE=$(TARGET)- defconfig
