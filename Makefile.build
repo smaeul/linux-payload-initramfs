@@ -181,7 +181,7 @@ lvm2_COMPILE = \
 lvm2_INSTALL = \
     $(COMMON_INSTALL:install=install_include install_pkgconfig install_static) -C libdm
 
-musl_VERSION = git-v1.2.4
+musl_VERSION = git-v1.2.5
 musl_SOURCE = git://git.musl-libc.org/musl
 musl_CONFIGURE = \
     $(COMMON_CONFIGURE) \
