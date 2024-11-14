@@ -19,7 +19,6 @@ modules-n += zlib
 
 prebuilt-$(CONFIG_COREBOOT) += etc/secondstage
 prebuilt-$(CONFIG_COREBOOT) += etc/initramfs.list
-prebuilt-y += init
 prebuilt-y := $(addprefix staging/,$(prebuilt-y))
 
 all: initramfs-$(TARGET).cpio.lz4
@@ -54,11 +53,14 @@ initramfs-$(TARGET).cpio.lz4: initramfs.list linux
 initramfs-$(TARGET).cpio.xz: initramfs.list linux
 	sysroot/bin/gen_init_cpio -t 0 $< | xz -9 --check=crc32 > $@.tmp && mv $@.tmp $@
 
-initramfs.list: tools/initramfs.list linux staging $(modules-y) $(prebuilt-y)
+initramfs.list: tools/initramfs.list linux staging staging/init $(modules-y) $(prebuilt-y)
 	sysroot/bin/gen_initramfs -u squash -g squash staging > $@.tmp && cat $< >> $@.tmp && mv $@.tmp $@
 
 sources staging:
 	mkdir -p $@
+
+staging/init: prebuilt/init$(if $(filter y,$(CONFIG_COREBOOT)),-coreboot) | staging
+	cp $< $@
 
 stageclean:
 	rm -fr *-build/.staged initramfs-$(TARGET).cpio.* initramfs.list staging
