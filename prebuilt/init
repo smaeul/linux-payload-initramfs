@@ -1,0 +1,19 @@
+#!/bin/sh
+
+export PATH=/bin
+
+mountpoint -q /proc || mount -nt proc proc /proc
+mountpoint -q /dev || mount -nt devtmpfs dev /dev
+mountpoint -q /sys || mount -nt sysfs sys /sys
+if grep -qF configfs /proc/filesystems; then
+  mountpoint -q /sys/kernel/config || mount -nt configfs config /sys/kernel/config
+fi
+if grep -qF debug /proc/filesystems; then
+  mountpoint -q /sys/kernel/debug || mount -nt debugfs debug /sys/kernel/debug
+fi
+if grep -qF tracefs /proc/filesystems; then
+  mountpoint -q /sys/kernel/tracing || mount -nt tracefs tracing /sys/kernel/tracing
+fi
+getty -l sh -n 115200 console
+echo "Restarting /init"
+exec /init
