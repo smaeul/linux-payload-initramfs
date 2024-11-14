@@ -311,6 +311,19 @@ petitboot_CONFIGURE = \
     HOST_PROG_WGET=/bin/wget
 petitboot_BINS = pb-config pb-discover pb-event pb-exec pb-plugin pb-sos pb-udhcpc petitboot-nc
 
+toybox_VERSION = 0.8.9
+toybox_SOURCE = https://landley.net/toybox/downloads/toybox-$(toybox_VERSION).tar.gz
+toybox_CONFIGURE = \
+    printf '%s\n' CONFIG_SH=y CONFIG_TOYBOX_FORCE_NOMMU=y > .config && \
+    $(MAKE) CROSS_COMPILE="$(TARGET)-" silentoldconfig
+toybox_COMPILE = \
+    $(MAKE) CROSS_COMPILE="$(TARGET)-" \
+    CFLAGS="$(filter-out %-gcc,$(CC)) $(COMMON_CFLAGS) $($(MODULE)_CFLAGS)" LDFLAGS="$(filter-out %-gcc,$(CC)) $(COMMON_LDFLAGS) $($(MODULE)_LDFLAGS)" \
+    OUTNAME=toybox
+toybox_INSTALL = \
+    install -m0755 toybox -Dt $(SYSROOT)/bin
+toybox_BINS = toybox
+
 util-linux_VERSION = 2.39.3
 util-linux_SOURCE = https://www.kernel.org/pub/linux/utils/util-linux/v2.39/util-linux-$(util-linux_VERSION).tar.xz
 util-linux_CONFIGURE = \

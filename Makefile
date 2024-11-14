@@ -12,6 +12,7 @@ modules-n += libtirpc
 modules-y += linux
 modules-n += musl
 modules-n += openssl
+modules-$(CONFIG_NOMMU) += toybox
 modules-n += util-linux
 modules-$(CONFIG_ZFS) += zfs
 modules-n += zlib
@@ -36,6 +37,7 @@ ncurses: musl
 openssl: musl
 pciutils: musl
 petitboot: eudev musl lvm2 ncurses openssl
+toybox: musl
 util-linux: musl
 zfs: libaio libtirpc musl openssl util-linux zlib
 zlib: musl
