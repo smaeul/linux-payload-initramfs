@@ -4,6 +4,19 @@ SYSROOT = $(CURDIR)/sysroot/$(TARGET)
 WORKDIR = $(CURDIR)/$(MODULE)-build
 
 ARCH = $(firstword $(subst -, ,$(TARGET)))
+KARCH = $(ARCH)
+ifeq ($(ARCH),aarch64)
+KARCH = arm64
+MACHINE ?= armv8-a -mtune=cortex-a53
+endif
+ifeq ($(ARCH),riscv32)
+KARCH = riscv
+MACHINE ?= rv32gc
+endif
+ifeq ($(ARCH),riscv64)
+KARCH = riscv
+MACHINE ?= rv64gc
+endif
 ifeq ($(ARCH),x86_64)
 MACHINE ?= core2
 endif
@@ -25,7 +38,6 @@ COMMON_CFLAGS = \
     -fomit-frame-pointer \
     -g0 \
     -march=$(MACHINE) \
-    -mtune=$(MACHINE) \
     -Os \
     -Wa,--noexecstack \
     -Werror=implicit-function-declaration
@@ -151,7 +163,7 @@ libtirpc_CONFIGURE = \
 linux_VERSION = 6.6.5
 linux_SOURCE = https://cdn.kernel.org/pub/linux/kernel/v6.x/linux-$(linux_VERSION).tar.xz
 linux_CONFIGURE = \
-    $(MAKE) ARCH=$(ARCH) CROSS_COMPILE=$(TARGET)- defconfig
+    $(MAKE) ARCH=$(KARCH) CROSS_COMPILE=$(TARGET)- defconfig
 linux_COMPILE = \
     cc -o usr/gen_init_cpio.host usr/gen_init_cpio.c && \
     $(CC) $(COMMON_CFLAGS) $($(MODULE)_CFLAGS) $(COMMON_LDFLAGS) $($(MODULE)_LDFLAGS) \
