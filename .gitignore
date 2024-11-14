@@ -3,4 +3,4 @@
 /sources/
 /staging/
 /sysroot/
-/initramfs.*
+/initramfs*
