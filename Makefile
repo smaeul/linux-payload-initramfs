@@ -1,19 +1,22 @@
 TARGET = x86_64-linux-musl
 
-modules-y += busybox
-modules-y += coreboot
-modules-y += kexec-tools
-modules-y += libaio
-modules-y += libtirpc
-modules-y += linux
-modules-y += musl
-modules-y += openssl
-modules-y += util-linux
-modules-y += zfs
-modules-y += zlib
+CONFIG_COREBOOT = y
+CONFIG_ZFS = y
 
-prebuilt-y += etc/secondstage
-prebuilt-y += etc/initramfs.list
+modules-y += busybox
+modules-$(CONFIG_COREBOOT) += coreboot
+modules-$(CONFIG_COREBOOT) += kexec-tools
+modules-n += libaio
+modules-n += libtirpc
+modules-y += linux
+modules-n += musl
+modules-n += openssl
+modules-n += util-linux
+modules-$(CONFIG_ZFS) += zfs
+modules-n += zlib
+
+prebuilt-$(CONFIG_COREBOOT) += etc/secondstage
+prebuilt-$(CONFIG_COREBOOT) += etc/initramfs.list
 prebuilt-y += init
 prebuilt-y := $(addprefix staging/,$(prebuilt-y))
 
@@ -62,7 +65,7 @@ sysroot:
 	mkdir -p $(CURDIR)/sysroot/$(TARGET)/bin
 	ln -fs bin $(CURDIR)/sysroot/$(TARGET)/sbin
 
-$(modules-y): | sources staging sysroot
+$(modules-y) $(modules-n): | sources staging sysroot
 	$(MAKE) -f Makefile.build MODULE=$@ TARGET=$(TARGET) stage
 
 $(prebuilt-y): staging/%: prebuilt/% | staging
