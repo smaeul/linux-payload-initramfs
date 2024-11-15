@@ -342,6 +342,14 @@ rt-tests_CONFIGURE = \
     true
 rt-tests_BINS = cyclicdeadline cyclictest deadline_test hackbench oslat pmqtest ptsematest queuelat rt-migrate-test signaltest sigwaittest ssdd svsematest
 
+stress-ng_VERSION = git-V0.18.06
+stress-ng_SOURCE = https://github.com/ColinIanKing/stress-ng
+stress-ng_CONFIGURE = \
+    true
+stress-ng_INSTALL = \
+    $(COMMON_INSTALL) BINDIR=/bin
+stress-ng_BINS = stress-ng
+
 toybox_VERSION = 0.8.9
 toybox_SOURCE = https://landley.net/toybox/downloads/toybox-$(toybox_VERSION).tar.gz
 toybox_CONFIGURE = \

@@ -16,6 +16,7 @@ modules-n += musl
 modules-n += numactl
 modules-n += openssl
 modules-$(CONFIG_TESTS) += rt-tests
+modules-$(CONFIG_TESTS) += stress-ng
 modules-$(CONFIG_NOMMU) += toybox
 modules-n += util-linux
 modules-$(CONFIG_ZFS) += zfs
