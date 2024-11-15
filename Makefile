@@ -1,8 +1,8 @@
-TARGET = x86_64-linux-musl
+export TARGET = x86_64-linux-musl
 
-CONFIG_NOMMU = n
-CONFIG_COREBOOT = y
-CONFIG_ZFS = y
+export CONFIG_NOMMU = n
+export CONFIG_COREBOOT = y
+export CONFIG_ZFS = y
 
 modules-y += busybox
 modules-$(CONFIG_COREBOOT) += coreboot
@@ -73,7 +73,7 @@ sysroot:
 	ln -fs bin $(CURDIR)/sysroot/$(TARGET)/sbin
 
 $(modules-y) $(modules-n): | sources staging sysroot
-	$(MAKE) -f Makefile.build MODULE=$@ TARGET=$(TARGET) CONFIG_NOMMU=$(CONFIG_NOMMU) stage
+	$(MAKE) -f Makefile.build MODULE=$@ stage
 
 $(prebuilt-y): staging/%: prebuilt/% | staging
 	mkdir -p $(dir $@)
