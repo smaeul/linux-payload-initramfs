@@ -76,7 +76,7 @@ COMMON_CONFIGURE = \
     CONFIG_SITE=../tools/config.site PKG_CONFIG=false \
     --host=$(TARGET) \
     --prefix= --bindir=/bin --libdir=/lib --sbindir=/bin \
-    --disable-nls --disable-rpath --enable-static --enable-shared \
+    --disable-nls --disable-rpath --disable-silent-rules --enable-static --enable-shared \
     --with-pic
 COMMON_COMPILE = \
     $(MAKE) CROSS_COMPILE="$(TARGET)-" CC="$(CC)" CPP="$(CPP)" CXX="$(CXX)" \
