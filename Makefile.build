@@ -180,6 +180,16 @@ linux_INSTALL = \
     install -m0755 usr/gen_init_cpio.target $(SYSROOT)/bin/gen_init_cpio && \
     install -m0755 usr/gen_initramfs.sh $(SYSHOST)/bin/gen_initramfs
 linux_BINS = gen_init_cpio
+ifeq ($(CONFIG_TESTS),y)
+linux_COMPILE += && \
+    $(MAKE) -C tools/perf -f Makefile.perf ARCH=$(KARCH) CROSS_COMPILE="$(TARGET)-" \
+    CC="$(CC) $(COMMON_CFLAGS)" CPP="$(CPP) $(COMMON_CFLAGS)" CXX="$(CXX) $(COMMON_CFLAGS)" \
+    LDFLAGS="$(COMMON_LDFLAGS) -static" \
+    FIXDEP=1 NO_LIBELF=1 NO_LIBNUMA=1 NO_LIBTRACEEVENT=1 NO_SDT=1 V=1
+linux_INSTALL += && \
+    install -m0755 tools/perf/perf -Dt $(SYSROOT)/bin
+linux_BINS += perf
+endif
 
 lvm2_VERSION = 2.03.23
 lvm2_SOURCE = https://mirrors.kernel.org/sourceware/lvm2/LVM2.$(lvm2_VERSION).tgz
