@@ -109,6 +109,16 @@ coreboot_INSTALL = \
     $(COMMON_INSTALL) -C util/nvramtool
 coreboot_BINS = nvramtool
 
+coremark_VERSION = git-main
+coremark_SOURCE = https://github.com/eembc/coremark
+coremark_CONFIGURE = \
+    true
+coremark_COMPILE = \
+    $(MAKE) CC="$(CC)" XCFLAGS="$(COMMON_CFLAGS)" LDFLAGS="$(COMMON_LDFLAGS)" link
+coremark_INSTALL = \
+    install -m0755 coremark.exe -D $(SYSROOT)/bin/coremark
+coremark_BINS = coremark
+
 eudev_VERSION = 3.2.14
 eudev_SOURCE = https://github.com/eudev-project/eudev/releases/download/v$(eudev_VERSION)/eudev-$(eudev_VERSION).tar.gz
 eudev_CONFIGURE = \

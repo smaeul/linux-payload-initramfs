@@ -7,6 +7,7 @@ export CONFIG_ZFS = y
 
 modules-y += busybox
 modules-$(CONFIG_COREBOOT) += coreboot
+modules-$(CONFIG_TESTS) += coremark
 modules-$(CONFIG_COREBOOT) += kexec-tools
 modules-n += libaio
 modules-n += libtirpc
