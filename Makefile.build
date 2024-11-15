@@ -235,6 +235,12 @@ ncurses_CONFIGURE = \
     --without-shared \
     --without-termlib
 
+numactl_VERSION = 2.0.19
+numactl_SOURCE = https://github.com/numactl/numactl/releases/download/v$(numactl_VERSION)/numactl-$(numactl_VERSION).tar.gz
+numactl_CONFIGURE = \
+    $(COMMON_CONFIGURE) ac_cv_search___atomic_fetch_and_1=no
+numactl_LIBS = libnuma.so.1
+
 openssl_VERSION = 3.2.0
 openssl_SOURCE = https://www.openssl.org/source/openssl-$(openssl_VERSION).tar.gz
 openssl_PREPARE = \
@@ -309,6 +315,12 @@ petitboot_CONFIGURE = \
     HOST_PROG_UMOUNT=/bin/umount \
     HOST_PROG_WGET=/bin/wget
 petitboot_BINS = pb-config pb-discover pb-event pb-exec pb-plugin pb-sos pb-udhcpc petitboot-nc
+
+rt-tests_VERSION = git-v2.7
+rt-tests_SOURCE = https://git.kernel.org/pub/scm/utils/rt-tests/rt-tests.git
+rt-tests_CONFIGURE = \
+    true
+rt-tests_BINS = cyclicdeadline cyclictest deadline_test hackbench oslat pmqtest ptsematest queuelat rt-migrate-test signaltest sigwaittest ssdd svsematest
 
 toybox_VERSION = 0.8.9
 toybox_SOURCE = https://landley.net/toybox/downloads/toybox-$(toybox_VERSION).tar.gz

@@ -2,6 +2,7 @@ export TARGET = x86_64-linux-musl
 
 export CONFIG_NOMMU = n
 export CONFIG_COREBOOT = y
+export CONFIG_TESTS = n
 export CONFIG_ZFS = y
 
 modules-y += busybox
@@ -11,7 +12,9 @@ modules-n += libaio
 modules-n += libtirpc
 modules-y += linux
 modules-n += musl
+modules-n += numactl
 modules-n += openssl
+modules-$(CONFIG_TESTS) += rt-tests
 modules-$(CONFIG_NOMMU) += toybox
 modules-n += util-linux
 modules-$(CONFIG_ZFS) += zfs
@@ -33,9 +36,11 @@ libtirpc: musl
 linux: musl
 lvm2: musl
 ncurses: musl
+numactl: musl
 openssl: musl
 pciutils: musl
 petitboot: eudev musl lvm2 ncurses openssl
+rt-tests: musl numactl
 toybox: musl
 util-linux: musl
 zfs: libaio libtirpc musl openssl util-linux zlib

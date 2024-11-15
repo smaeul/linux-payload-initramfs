@@ -1,0 +1,22 @@
+--- rt-tests-2.7/Makefile
++++ rt-tests-2.7/Makefile
+@@ -8,7 +8,6 @@ OBJDIR = bld
+ sources = cyclictest.c \
+ 	  hackbench.c \
+ 	  pip_stress.c \
+-	  pi_stress.c \
+ 	  pmqtest.c \
+ 	  ptsematest.c \
+ 	  rt-migrate-test.c \
+--- rt-tests-2.7/src/cyclictest/cyclictest.c
++++ rt-tests-2.7/src/cyclictest/cyclictest.c
+@@ -49,7 +49,9 @@
+ #define SCHED_NORMAL SCHED_OTHER
+ #endif
+ 
++#ifndef sigev_notify_thread_id
+ #define sigev_notify_thread_id _sigev_un._tid
++#endif
+ 
+ #ifdef __UCLIBC__
+ #define MAKE_PROCESS_CPUCLOCK(pid, clock) \
