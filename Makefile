@@ -56,8 +56,11 @@ initramfs-$(TARGET).cpio.xz: initramfs.list linux
 initramfs.list: tools/initramfs.list linux staging staging/init $(modules-y) $(prebuilt-y)
 	sysroot/bin/gen_initramfs -u squash -g squash staging > $@.tmp && cat $< >> $@.tmp && mv $@.tmp $@
 
-sources staging:
+sources:
 	mkdir -p $@
+
+staging:
+	mkdir -p $@/bin $@/lib
 
 staging/init: prebuilt/init$(if $(filter y,$(CONFIG_COREBOOT)),-coreboot) | staging
 	cp $< $@
@@ -66,8 +69,7 @@ stageclean:
 	rm -fr *-build/.staged initramfs-$(TARGET).cpio.* initramfs.list staging
 
 sysroot:
-	mkdir -p $(CURDIR)/sysroot/bin
-	mkdir -p $(CURDIR)/sysroot/$(TARGET)/bin
+	mkdir -p $(CURDIR)/sysroot/bin $(CURDIR)/sysroot/$(TARGET)/bin
 	ln -fs bin $(CURDIR)/sysroot/$(TARGET)/sbin
 
 $(modules-y) $(modules-n): | sources staging sysroot

@@ -1,4 +1,7 @@
 dir	/bin		755 0 0
+slink	/bin/mount	busybox	777 0 0
+slink	/bin/sh		busybox	777 0 0
+slink	/bin/umount	busybox	777 0 0
 dir	/dev		755 0 0
 nod	/dev/console	600 0 0 c 5 1
 slink	/dev/fd		../proc/self/fd	777 0 0

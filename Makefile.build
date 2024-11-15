@@ -90,9 +90,8 @@ busybox_DOTCONFIG = tools/busybox$(if $(filter y,$(CONFIG_NOMMU)),-nommu).config
 busybox_CONFIGURE = \
     cp ../$(busybox_DOTCONFIG) .config
 busybox_INSTALL = \
-    install -m0755 busybox -Dt $(SYSROOT)/bin; \
-    for sym in mount sh umount; do ln -fs busybox $(SYSROOT)/bin/$$sym; done
-busybox_BINS = busybox mount sh umount
+    install -m0755 busybox -Dt $(SYSROOT)/bin
+busybox_BINS = busybox
 $(CURDIR)/busybox-build/.configured: $(busybox_DOTCONFIG)
 
 coreboot_VERSION = git-4.22.01
@@ -353,7 +352,7 @@ util-linux_CONFIGURE = \
     --without-user \
     --without-utempter \
     --without-util
-util-linux_LIBS = libblkid.so.* libuuid.so.*
+util-linux_LIBS = libblkid.so.1 libuuid.so.1
 
 zfs_VERSION = 2.2.2
 zfs_SOURCE = https://github.com/zfsonlinux/zfs/releases/download/zfs-$(zfs_VERSION)/zfs-$(zfs_VERSION).tar.gz
@@ -373,7 +372,7 @@ zfs_CONFIGURE = \
     ac_cv_header_libudev_h=no \
     ac_cv_search_udev_device_get_is_initialized=no
 zfs_BINS = zfs zpool
-zfs_LIBS = libnvpair.so.* libuutil.so.* libzfs.so.* libzfs_core.so.*
+zfs_LIBS = libnvpair.so.3 libuutil.so.3 libzfs.so.4 libzfs_core.so.3
 
 zlib_VERSION = 1.3.1
 zlib_SOURCE = https://www.zlib.net/zlib-$(zlib_VERSION).tar.xz
@@ -420,6 +419,10 @@ ifeq ($($(MODULE)_INSTALL),)
 $(MODULE)_INSTALL = $(COMMON_INSTALL)
 endif
 
+ifeq ($(CONFIG_NOMMU),y)
+$(MODULE)_LIBS :=
+endif
+
 all: $(WORKDIR)/.staged
 fetch: $($(MODULE)_LOCAL_SOURCE)
 unpack: $(WORKDIR)/.unpacked
@@ -440,7 +443,7 @@ $(WORKDIR)/.prepared: $(WORKDIR)/.unpacked
 	cd $(WORKDIR) && $($(MODULE)_PREPARE)
 	touch $@
 
-$(WORKDIR)/.configured: sysroot $(WORKDIR)/.prepared
+$(WORKDIR)/.configured: $(WORKDIR)/.prepared
 	cd $(WORKDIR) && $($(MODULE)_CONFIGURE)
 	touch $@
 
@@ -453,10 +456,13 @@ $(WORKDIR)/.installed: $(WORKDIR)/.compiled
 	find $(SYSROOT) -name '*.la' -delete
 	touch $@
 
-$(WORKDIR)/.staged: $(WORKDIR)/.installed
-	mkdir -p "$(STAGING)/bin" "$(STAGING)/lib"
-	for b in $($(MODULE)_BINS); do cp -P $(SYSROOT)/bin/$${b} "$(STAGING)/bin" && $(TARGET)-strip -s $(STAGING)/bin/$${b}; done
-ifneq ($(CONFIG_NOMMU),y)
-	for l in $($(MODULE)_LIBS); do cp -P $(SYSROOT)/lib/$${l} "$(STAGING)/lib" && $(TARGET)-strip -s $(STAGING)/lib/$${l}; done
-endif
+$(addprefix $(SYSROOT)/bin/,$($(MODULE)_BINS)): $(WORKDIR)/.installed
+$(addprefix $(SYSROOT)/lib/,$($(MODULE)_LIBS)): $(WORKDIR)/.installed
+
+$(STAGING)/%: $(SYSROOT)/%
+	$(TARGET)-strip -s -o $@ $<
+
+$(WORKDIR)/.staged: $(addprefix $(STAGING)/bin/,$($(MODULE)_BINS))
+$(WORKDIR)/.staged: $(addprefix $(STAGING)/lib/,$($(MODULE)_LIBS))
+$(WORKDIR)/.staged:
 	touch $@
