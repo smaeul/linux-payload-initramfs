@@ -2,18 +2,30 @@
 
 export PATH=/bin
 
-mountpoint -q /proc || mount -nt proc proc /proc
-mountpoint -q /dev || mount -nt devtmpfs dev /dev
-mountpoint -q /sys || mount -nt sysfs sys /sys
-if grep -qF configfs /proc/filesystems; then
-  mountpoint -q /sys/kernel/config || mount -nt configfs config /sys/kernel/config
-fi
-if grep -qF debug /proc/filesystems; then
-  mountpoint -q /sys/kernel/debug || mount -nt debugfs debug /sys/kernel/debug
-fi
-if grep -qF tracefs /proc/filesystems; then
-  mountpoint -q /sys/kernel/tracing || mount -nt tracefs tracing /sys/kernel/tracing
-fi
+# usage: pseudofs <mountpoint> <fstype>
+pseudofs() {
+	if test -f /proc/filesystems && ! grep -q "^nodev\t${2}$" /proc/filesystems; then
+		return 0
+	fi
+	if mountpoint -q "$1"; then
+		return 0
+	fi
+	mkdir -p "$1"
+	mount -nt "$2" "$2" "$1"
+}
+
+pseudofs /proc			proc
+pseudofs /dev			devtmpfs
+pseudofs /dev/pts		devpts
+pseudofs /sys			sysfs
+pseudofs /sys/kernel/config	configfs
+pseudofs /sys/kernel/debug	debugfs
+pseudofs /sys/kernel/tracing	tracefs
+
+ln -fns ../proc/self/fd /dev/fd
+mkdir -p /dev/shm
+
 getty -l sh -n 115200 console
+
 echo "Restarting /init"
 exec /init
